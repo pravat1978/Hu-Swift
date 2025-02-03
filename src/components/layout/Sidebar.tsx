@@ -5,11 +5,25 @@ import {
   Users,
   Car,
   LayoutDashboard,
-  GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const navSections = [
+// Type definition for navigation items
+interface NavItem {
+  icon: JSX.Element;
+  label: string;
+  href: string;
+  subItems?: { icon?: JSX.Element; label: string; href: string }[];
+}
+
+// Type definition for navigation sections
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+// Navigation sections with proper type definition
+const navSections: NavSection[] = [
   {
     label: "Main",
     items: [
@@ -26,7 +40,7 @@ const navSections = [
       {
         icon: <Building2 className="w-5 h-5" />,
         label: "Organization",
-        href: "/organization",
+        href: "/organization"
       },
       {
         icon: <Users className="w-5 h-5" />,
@@ -76,7 +90,9 @@ export default function Sidebar() {
                     <span className="flex-1 text-left">{item.label}</span>
                   </Button>
                 </Link>
-                {item.subItems && (
+
+                {/* Render sub-items if they exist */}
+                {item.subItems && item.subItems.length > 0 && (
                   <div className="ml-6 mt-1 space-y-1">
                     {item.subItems.map((subItem) => (
                       <Link key={subItem.href} to={subItem.href}>
