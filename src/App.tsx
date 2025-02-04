@@ -8,6 +8,10 @@ import DriverList from "@/components/drivers/DriverList";
 import DriverForm from "@/components/drivers/DriverForm";
 import OrganizationList from "@/components/organization/OrganizationList";
 import OrganizationForm from "@/components/organization/OrganizationForm";
+import WarehouseList from "@/components/locations/WarehouseList";
+import WarehouseForm from "@/components/locations/WarehouseForm";
+import FleetYardList from "@/components/locations/FleetYardList";
+import FleetYardForm from "@/components/locations/FleetYardForm";
 import routes from "tempo-routes";
 
 function App() {
@@ -28,6 +32,24 @@ function App() {
             <Route
               path="organization/:id/edit"
               element={<OrganizationForm />}
+            />
+            <Route path="locations/warehouses" element={<WarehouseList />} />
+            <Route
+              path="locations/warehouses/new"
+              element={<WarehouseForm />}
+            />
+            <Route
+              path="locations/warehouses/:id/edit"
+              element={<WarehouseForm />}
+            />
+            <Route path="locations/fleet-yards" element={<FleetYardList />} />
+            <Route
+              path="locations/fleet-yards/new"
+              element={<FleetYardForm />}
+            />
+            <Route
+              path="locations/fleet-yards/:id/edit"
+              element={<FleetYardForm />}
             />
           </Route>
         </Routes>

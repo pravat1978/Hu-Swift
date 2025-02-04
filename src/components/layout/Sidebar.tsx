@@ -5,7 +5,8 @@ import {
   Users,
   Car,
   LayoutDashboard,
-  GitBranch,
+  Warehouse,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -38,6 +39,23 @@ const navSections = [
         label: "Vehicles",
         href: "/vehicles",
       },
+      {
+        icon: <MapPin className="w-5 h-5" />,
+        label: "Locations",
+        href: "#",
+        subItems: [
+          {
+            icon: <Warehouse className="w-4 h-4" />,
+            label: "Warehouses",
+            href: "/locations/warehouses",
+          },
+          {
+            icon: <MapPin className="w-4 h-4" />,
+            label: "Fleet Yards",
+            href: "/locations/fleet-yards",
+          },
+        ],
+      },
     ],
   },
 ];
@@ -61,29 +79,36 @@ export default function Sidebar() {
               {section.label}
             </h2>
             {section.items.map((item) => (
-              <div key={item.href}>
-                <Link to={item.href}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start gap-3 px-3",
-                      location.pathname === item.href
-                        ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                    )}
-                  >
+              <div key={item.href} className="space-y-1">
+                {item.subItems ? (
+                  <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500">
                     {item.icon}
                     <span className="flex-1 text-left">{item.label}</span>
-                  </Button>
-                </Link>
+                  </div>
+                ) : (
+                  <Link to={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-3 px-3",
+                        location.pathname === item.href
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      )}
+                    >
+                      {item.icon}
+                      <span className="flex-1 text-left">{item.label}</span>
+                    </Button>
+                  </Link>
+                )}
                 {item.subItems && (
-                  <div className="ml-6 mt-1 space-y-1">
+                  <div className="ml-6 space-y-1">
                     {item.subItems.map((subItem) => (
                       <Link key={subItem.href} to={subItem.href}>
                         <Button
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start gap-3 px-3 text-sm",
+                            "w-full justify-start gap-2 px-3 py-1.5 text-sm",
                             location.pathname === subItem.href
                               ? "bg-gray-100 text-gray-900"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",

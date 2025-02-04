@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Edit, Power } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,41 +33,43 @@ import { useNavigate } from "react-router-dom";
 
 export default function OrganizationForm() {
   const [activeTab, setActiveTab] = useState("basic");
-  const [showBranchForm, setShowBranchForm] = useState(false);
-  const [editingBranch, setEditingBranch] = useState(null);
-  const [branches, setBranches] = useState([
+  const [showLocationForm, setShowLocationForm] = useState(false);
+  const [editingLocation, setEditingLocation] = useState(null);
+  const [locations, setLocations] = useState([
     {
       id: "1",
-      name: "Mumbai Central",
+      name: "Mumbai Fleet Yard",
       code: "MUM001",
+      type: "fleet_yard",
       contactPerson: "Rahul Shah",
       status: "active",
     },
   ]);
 
-  const handleEditBranch = (branch) => {
-    setEditingBranch(branch);
-    setShowBranchForm(true);
+  const handleEditLocation = (location) => {
+    setEditingLocation(location);
+    setShowLocationForm(true);
   };
 
-  const handleToggleBranchStatus = (branchId) => {
-    setBranches(
-      branches.map((branch) =>
-        branch.id === branchId
+  const handleToggleLocationStatus = (locationId) => {
+    setLocations(
+      locations.map((location) =>
+        location.id === locationId
           ? {
-              ...branch,
-              status: branch.status === "active" ? "inactive" : "active",
+              ...location,
+              status: location.status === "active" ? "inactive" : "active",
             }
-          : branch,
+          : location,
       ),
     );
   };
 
-  const handleSaveBranch = () => {
-    // Handle saving branch
-    setShowBranchForm(false);
-    setEditingBranch(null);
+  const handleSaveLocation = () => {
+    // Handle saving location
+    setShowLocationForm(false);
+    setEditingLocation(null);
   };
+
   const navigate = useNavigate();
 
   return (
@@ -79,11 +82,10 @@ export default function OrganizationForm() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="legal">Legal Details</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          <TabsTrigger value="branches">Branches</TabsTrigger>
         </TabsList>
 
         <Card className="mt-4 p-6">
@@ -193,11 +195,11 @@ export default function OrganizationForm() {
             </div>
           </TabsContent>
 
-          <TabsContent value="branches" className="space-y-4">
+          <TabsContent value="locations" className="space-y-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Branch List</h3>
-              <Button onClick={() => setShowBranchForm(true)} size="sm">
-                <Plus className="w-4 h-4 mr-2" /> Add Branch
+              <h3 className="text-lg font-semibold">Location List</h3>
+              <Button onClick={() => setShowLocationForm(true)} size="sm">
+                <Plus className="w-4 h-4 mr-2" /> Add Location
               </Button>
             </div>
 
@@ -207,24 +209,32 @@ export default function OrganizationForm() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Code</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Contact Person</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {branches.map((branch) => (
-                    <TableRow key={branch.id}>
-                      <TableCell>{branch.name}</TableCell>
-                      <TableCell>{branch.code}</TableCell>
-                      <TableCell>{branch.contactPerson}</TableCell>
+                  {locations.map((location) => (
+                    <TableRow key={location.id}>
+                      <TableCell>{location.name}</TableCell>
+                      <TableCell>{location.code}</TableCell>
+                      <TableCell>
+                        {location.type === "fleet_yard"
+                          ? "Fleet Yard"
+                          : "Warehouse"}
+                      </TableCell>
+                      <TableCell>{location.contactPerson}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
-                            branch.status === "active" ? "default" : "secondary"
+                            location.status === "active"
+                              ? "default"
+                              : "secondary"
                           }
                         >
-                          {branch.status}
+                          {location.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -232,14 +242,16 @@ export default function OrganizationForm() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEditBranch(branch)}
+                            onClick={() => handleEditLocation(location)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleToggleBranchStatus(branch.id)}
+                            onClick={() =>
+                              handleToggleLocationStatus(location.id)
+                            }
                           >
                             <Power className="h-4 w-4" />
                           </Button>
@@ -251,11 +263,11 @@ export default function OrganizationForm() {
               </Table>
             </div>
 
-            <Dialog open={showBranchForm} onOpenChange={setShowBranchForm}>
+            <Dialog open={showLocationForm} onOpenChange={setShowLocationForm}>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingBranch ? "Edit Branch" : "Add New Branch"}
+                    {editingLocation ? "Edit Location" : "Add New Location"}
                   </DialogTitle>
                 </DialogHeader>
                 <Tabs defaultValue="basic" className="w-full">
@@ -268,12 +280,26 @@ export default function OrganizationForm() {
                   <TabsContent value="basic" className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Branch Name</Label>
-                        <Input placeholder="Enter branch name" />
+                        <Label>Location Name</Label>
+                        <Input placeholder="Enter location name" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Branch Code</Label>
-                        <Input placeholder="Enter branch code" />
+                        <Label>Location Code</Label>
+                        <Input placeholder="Enter location code" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Type</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select location type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fleet_yard">
+                              Fleet Yard
+                            </SelectItem>
+                            <SelectItem value="warehouse">Warehouse</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
                         <Label>Street Address</Label>
@@ -321,12 +347,12 @@ export default function OrganizationForm() {
                 <DialogFooter>
                   <Button
                     variant="outline"
-                    onClick={() => setShowBranchForm(false)}
+                    onClick={() => setShowLocationForm(false)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleSaveBranch}>
-                    {editingBranch ? "Update" : "Add"} Branch
+                  <Button onClick={handleSaveLocation}>
+                    {editingLocation ? "Update" : "Add"} Location
                   </Button>
                 </DialogFooter>
               </DialogContent>
