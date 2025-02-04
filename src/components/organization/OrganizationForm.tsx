@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +51,6 @@ export default function OrganizationForm() {
     setShowLocationForm(true);
   };
 
-<<<<<<< HEAD
   const handleToggleLocationStatus = (locationId) => {
     setLocations(
       locations.map((location) =>
@@ -70,21 +68,6 @@ export default function OrganizationForm() {
     // Handle saving location
     setShowLocationForm(false);
     setEditingLocation(null);
-=======
-  const handleToggleBranchStatus = (branchId) => {
-    setBranches(
-      branches.map((branch) =>
-        branch.id === branchId
-          ? { ...branch, status: branch.status === "active" ? "inactive" : "active" }
-          : branch
-      )
-    );
-  };
-
-  const handleSaveBranch = () => {
-    setShowBranchForm(false);
-    setEditingBranch(null);
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
   };
 
   const navigate = useNavigate();
@@ -106,7 +89,6 @@ export default function OrganizationForm() {
         </TabsList>
 
         <Card className="mt-4 p-6">
-<<<<<<< HEAD
           <TabsContent value="basic" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -214,9 +196,6 @@ export default function OrganizationForm() {
           </TabsContent>
 
           <TabsContent value="locations" className="space-y-4">
-=======
-          <TabsContent value="branches" className="space-y-4">
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Location List</h3>
               <Button onClick={() => setShowLocationForm(true)} size="sm">
@@ -248,7 +227,6 @@ export default function OrganizationForm() {
                       </TableCell>
                       <TableCell>{location.contactPerson}</TableCell>
                       <TableCell>
-<<<<<<< HEAD
                         <Badge
                           variant={
                             location.status === "active"
@@ -257,15 +235,10 @@ export default function OrganizationForm() {
                           }
                         >
                           {location.status}
-=======
-                        <Badge variant={branch.status === "active" ? "default" : "secondary"}>
-                          {branch.status}
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-<<<<<<< HEAD
                           <Button
                             variant="ghost"
                             size="icon"
@@ -280,12 +253,6 @@ export default function OrganizationForm() {
                               handleToggleLocationStatus(location.id)
                             }
                           >
-=======
-                          <Button variant="ghost" size="icon" onClick={() => handleEditBranch(branch)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleToggleBranchStatus(branch.id)}>
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
                             <Power className="h-4 w-4" />
                           </Button>
                         </div>
@@ -295,7 +262,6 @@ export default function OrganizationForm() {
                 </TableBody>
               </Table>
             </div>
-<<<<<<< HEAD
 
             <Dialog open={showLocationForm} onOpenChange={setShowLocationForm}>
               <DialogContent className="max-w-2xl">
@@ -391,8 +357,6 @@ export default function OrganizationForm() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-=======
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
           </TabsContent>
         </Card>
       </Tabs>

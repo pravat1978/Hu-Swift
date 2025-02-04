@@ -5,11 +5,8 @@ import {
   Users,
   Car,
   LayoutDashboard,
-<<<<<<< HEAD
   Warehouse,
   MapPin,
-=======
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -102,7 +99,6 @@ export default function Sidebar() {
                   <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500">
                     {item.icon}
                     <span className="flex-1 text-left">{item.label}</span>
-<<<<<<< HEAD
                   </div>
                 ) : (
                   <Link to={item.href}>
@@ -122,14 +118,6 @@ export default function Sidebar() {
                 )}
                 {item.subItems && (
                   <div className="ml-6 space-y-1">
-=======
-                  </Button>
-                </Link>
-
-                {/* Render sub-items if they exist */}
-                {item.subItems && item.subItems.length > 0 && (
-                  <div className="ml-6 mt-1 space-y-1">
->>>>>>> 3d6a08370fd3cc663ef678156e862dee3d54a301
                     {item.subItems.map((subItem) => (
                       <Link key={subItem.href} to={subItem.href}>
                         <Button
