@@ -11,7 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import  ReactSelect from 'react-select';
 import { useNavigate } from "react-router-dom";
+
+const organizations = [
+  { value: 'org1', label: 'Organization 1' },
+  { value: 'org2', label: 'Organization 2' },
+  { value: 'org3', label: 'Organization 3' },
+  // Add more organizations as needed
+];
+
 
 export default function DriverForm() {
   const [activeTab, setActiveTab] = useState("personal");
@@ -57,6 +66,14 @@ export default function DriverForm() {
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+        <Label>Organization</Label>
+        <ReactSelect
+          options={organizations}
+          placeholder="Select organization"
+          isSearchable
+        />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
