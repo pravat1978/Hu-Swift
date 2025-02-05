@@ -25,7 +25,7 @@ interface Organization {
 
 const demoOrganizations: Organization[] = [
   {
-    id: "1",
+    id: "HS_OG_001",
     name: "Swift Logistics Ltd",
     regNumber: "REG123456",
     type: "Logistics",

@@ -42,7 +42,7 @@ const navSections: NavSection[] = [
       {
         icon: <Building2 className="w-5 h-5" />,
         label: "Organization",
-        href: "/organization"
+        href: "/organization",
       },
       {
         icon: <Users className="w-5 h-5" />,

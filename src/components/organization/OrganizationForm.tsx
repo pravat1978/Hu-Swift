@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge"; // Ensure this import exists
+import { Badge } from "@/components/ui/badge";
 
 export default function OrganizationForm() {
   const [activeTab, setActiveTab] = useState("basic");
@@ -82,10 +82,9 @@ export default function OrganizationForm() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="legal">Legal Details</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
         </TabsList>
 
         <Card className="mt-4 p-6">
@@ -96,8 +95,8 @@ export default function OrganizationForm() {
                 <Input placeholder="Enter organization name" />
               </div>
               <div className="space-y-2">
-                <Label>Registration Number</Label>
-                <Input placeholder="Enter registration number" />
+                <Label>Company registration number</Label>
+                <Input placeholder="Enter company registration number" />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
@@ -128,9 +127,81 @@ export default function OrganizationForm() {
                 <Label>Website</Label>
                 <Input placeholder="Enter website URL" />
               </div>
-              <div className="space-y-2">
-                <Label>Address</Label>
-                <Input placeholder="Enter address" />
+              <div className="col-span-2 space-y-4">
+                <h3 className="font-medium">Address</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Address Line 1</Label>
+                    <Input placeholder="Enter address line 1" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Address Line 2</Label>
+                    <Input placeholder="Enter address line 2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>City</Label>
+                    <Input placeholder="Enter city" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>State</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AN">
+                          Andaman and Nicobar Islands
+                        </SelectItem>
+                        <SelectItem value="AP">Andhra Pradesh</SelectItem>
+                        <SelectItem value="AR">Arunachal Pradesh</SelectItem>
+                        <SelectItem value="AS">Assam</SelectItem>
+                        <SelectItem value="BR">Bihar</SelectItem>
+                        <SelectItem value="CH">Chandigarh</SelectItem>
+                        <SelectItem value="CT">Chhattisgarh</SelectItem>
+                        <SelectItem value="DN">
+                          Dadra and Nagar Haveli
+                        </SelectItem>
+                        <SelectItem value="DD">Daman and Diu</SelectItem>
+                        <SelectItem value="DL">Delhi</SelectItem>
+                        <SelectItem value="GA">Goa</SelectItem>
+                        <SelectItem value="GJ">Gujarat</SelectItem>
+                        <SelectItem value="HR">Haryana</SelectItem>
+                        <SelectItem value="HP">Himachal Pradesh</SelectItem>
+                        <SelectItem value="JK">Jammu and Kashmir</SelectItem>
+                        <SelectItem value="JH">Jharkhand</SelectItem>
+                        <SelectItem value="KA">Karnataka</SelectItem>
+                        <SelectItem value="KL">Kerala</SelectItem>
+                        <SelectItem value="LA">Ladakh</SelectItem>
+                        <SelectItem value="LD">Lakshadweep</SelectItem>
+                        <SelectItem value="MP">Madhya Pradesh</SelectItem>
+                        <SelectItem value="MH">Maharashtra</SelectItem>
+                        <SelectItem value="MN">Manipur</SelectItem>
+                        <SelectItem value="ML">Meghalaya</SelectItem>
+                        <SelectItem value="MZ">Mizoram</SelectItem>
+                        <SelectItem value="NL">Nagaland</SelectItem>
+                        <SelectItem value="OR">Odisha</SelectItem>
+                        <SelectItem value="PY">Puducherry</SelectItem>
+                        <SelectItem value="PB">Punjab</SelectItem>
+                        <SelectItem value="RJ">Rajasthan</SelectItem>
+                        <SelectItem value="SK">Sikkim</SelectItem>
+                        <SelectItem value="TN">Tamil Nadu</SelectItem>
+                        <SelectItem value="TG">Telangana</SelectItem>
+                        <SelectItem value="TR">Tripura</SelectItem>
+                        <SelectItem value="UP">Uttar Pradesh</SelectItem>
+                        <SelectItem value="UT">Uttarakhand</SelectItem>
+                        <SelectItem value="WB">West Bengal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Pincode</Label>
+                    <Input placeholder="Enter pincode" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Country</Label>
+                    <Input value="India" disabled />
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
@@ -150,47 +221,8 @@ export default function OrganizationForm() {
                 <Input type="date" />
               </div>
               <div className="space-y-2">
-                <Label>Business License Number</Label>
-                <Input placeholder="Enter license number" />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="subscription" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Plan Type</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="basic">Basic</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Start Date</Label>
-                <Input type="date" />
-              </div>
-              <div className="space-y-2">
-                <Label>Expiry Date</Label>
-                <Input type="date" />
-              </div>
-              <div className="space-y-2">
-                <Label>Payment Mode</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="credit_card">Credit Card</SelectItem>
-                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="upi">UPI</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Corporate Identification Number</Label>
+                <Input placeholder="Enter CIN" />
               </div>
             </div>
           </TabsContent>
@@ -360,6 +392,15 @@ export default function OrganizationForm() {
           </TabsContent>
         </Card>
       </Tabs>
+
+      <div className="flex justify-end space-x-4">
+        <Button variant="outline" onClick={() => navigate("/organization")}>
+          Cancel
+        </Button>
+        <Button onClick={() => console.log("Save organization")}>
+          Save Organization
+        </Button>
+      </div>
     </div>
   );
 }
