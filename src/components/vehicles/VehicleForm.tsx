@@ -50,7 +50,12 @@ export default function VehicleForm() {
                   <SelectContent>
                     <SelectItem value="truck">Truck</SelectItem>
                     <SelectItem value="van">Van</SelectItem>
-                    <SelectItem value="pickup">Pickup</SelectItem>
+                    <SelectItem value="container">Container</SelectItem>
+                    <SelectItem value="trailer">Trailer</SelectItem>
+                    <SelectItem value="refrigerated">
+                      Refrigerated Truck
+                    </SelectItem>
+                    <SelectItem value="two_wheeler">Two-Wheeler</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -75,6 +80,63 @@ export default function VehicleForm() {
 
           <TabsContent value="specs" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Chassis Number</Label>
+                <Input placeholder="Enter chassis number" />
+              </div>
+              <div className="space-y-2">
+                <Label>Engine Number</Label>
+                <Input placeholder="Enter engine number" />
+              </div>
+              <div className="space-y-2">
+                <Label>VIN</Label>
+                <Input placeholder="Enter Vehicle Identification Number" />
+              </div>
+              <div className="space-y-2">
+                <Label>Number of Axles</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select number of axles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="6">6</SelectItem>
+                    <SelectItem value="8">8</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Fuel Type</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fuel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="diesel">Diesel</SelectItem>
+                    <SelectItem value="petrol">Petrol</SelectItem>
+                    <SelectItem value="electric">Electric</SelectItem>
+                    <SelectItem value="cng">CNG</SelectItem>
+                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Fuel Tank Capacity (Liters)</Label>
+                <Input type="number" placeholder="Enter fuel tank capacity" />
+              </div>
+              <div className="space-y-2">
+                <Label>Mileage (KM/L)</Label>
+                <Input type="number" placeholder="Enter mileage" />
+              </div>
+              <div className="space-y-2">
+                <Label>Average Fuel Consumption (KM/L)</Label>
+                <Input
+                  type="number"
+                  placeholder="Enter average fuel consumption"
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <Label>Max Load (kg)</Label>
                 <Input type="number" placeholder="Maximum load capacity" />
@@ -148,23 +210,6 @@ export default function VehicleForm() {
               <div className="space-y-2">
                 <Label>Installation Date</Label>
                 <Input type="date" />
-              </div>
-              <div className="space-y-2">
-                <Label>Fuel Type</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select fuel type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="diesel">Diesel</SelectItem>
-                    <SelectItem value="petrol">Petrol</SelectItem>
-                    <SelectItem value="cng">CNG</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Tank Capacity (L)</Label>
-                <Input type="number" placeholder="Fuel tank capacity" />
               </div>
             </div>
           </TabsContent>
