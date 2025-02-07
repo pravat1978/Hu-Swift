@@ -90,6 +90,19 @@ const onboardingItems: NavItem[] = [
 export default function Sidebar() {
   const location = useLocation();
 
+  // Determine which accordion items should be open based on current path
+  const defaultAccordionValues = [];
+  if (location.pathname.includes("/master")) {
+    defaultAccordionValues.push("master");
+  }
+  if (
+    ["/organization", "/locations", "/drivers", "/vehicles", "/users"].some(
+      (path) => location.pathname.includes(path),
+    )
+  ) {
+    defaultAccordionValues.push("onboarding");
+  }
+
   return (
     <div className="flex flex-col h-full bg-white border-r border-gray-200 w-[280px]">
       <div className="p-6 space-y-1">
@@ -124,33 +137,35 @@ export default function Sidebar() {
           ))}
         </TooltipProvider>
 
-        <Accordion type="multiple" className="w-full">
+        <Accordion
+          type="multiple"
+          className="w-full"
+          defaultValue={defaultAccordionValues}
+        >
           <AccordionItem value="onboarding">
             <AccordionTrigger className="py-2 hover:no-underline">
-              <span className="text-sm font-semibold">Onboarding</span>
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-semibold">Onboarding</span>
+              </div>
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-1 pt-1">
                 {onboardingItems.map((item) => (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                      <Link to={item.href}>
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "w-full justify-start gap-3 px-3",
-                            location.pathname === item.href
-                              ? "bg-gray-100 text-gray-900"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                          )}
-                        >
-                          {item.icon}
-                          <span className="flex-1 text-left">{item.label}</span>
-                        </Button>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">{item.label}</TooltipContent>
-                  </Tooltip>
+                  <Link key={item.href} to={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-3 px-3",
+                        location.pathname === item.href
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      )}
+                    >
+                      {item.icon}
+                      <span className="flex-1 text-left">{item.label}</span>
+                    </Button>
+                  </Link>
                 ))}
               </div>
             </AccordionContent>
@@ -158,30 +173,28 @@ export default function Sidebar() {
 
           <AccordionItem value="master">
             <AccordionTrigger className="py-2 hover:no-underline">
-              <span className="text-sm font-semibold">Master Data</span>
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-semibold">Master Data</span>
+              </div>
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-1 pt-1">
                 {masterDataItems.map((item) => (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                      <Link to={item.href}>
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "w-full justify-start gap-3 px-3",
-                            location.pathname === item.href
-                              ? "bg-gray-100 text-gray-900"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                          )}
-                        >
-                          {item.icon}
-                          <span className="flex-1 text-left">{item.label}</span>
-                        </Button>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">{item.label}</TooltipContent>
-                  </Tooltip>
+                  <Link key={item.href} to={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-3 px-3",
+                        location.pathname === item.href
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      )}
+                    >
+                      {item.icon}
+                      <span className="flex-1 text-left">{item.label}</span>
+                    </Button>
+                  </Link>
                 ))}
               </div>
             </AccordionContent>
