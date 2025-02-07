@@ -16,7 +16,8 @@ import { useNavigate } from "react-router-dom";
 interface Permission {
   id: string;
   name: string;
-  description: string;
+  url: string;
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   module: string;
   status: "active" | "inactive";
 }
@@ -25,14 +26,16 @@ const demoPermissions: Permission[] = [
   {
     id: "1",
     name: "View Drivers",
-    description: "Can view driver list and details",
+    url: "/api/drivers",
+    method: "GET",
     module: "Drivers",
     status: "active",
   },
   {
     id: "2",
-    name: "Manage Vehicles",
-    description: "Can create and edit vehicles",
+    name: "Create Vehicle",
+    url: "/api/vehicles",
+    method: "POST",
     module: "Vehicles",
     status: "active",
   },
@@ -74,7 +77,8 @@ export default function PermissionList() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
+              <TableHead>URL</TableHead>
+              <TableHead>Method</TableHead>
               <TableHead>Module</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
@@ -84,7 +88,10 @@ export default function PermissionList() {
             {filteredPermissions.map((permission) => (
               <TableRow key={permission.id}>
                 <TableCell>{permission.name}</TableCell>
-                <TableCell>{permission.description}</TableCell>
+                <TableCell>{permission.url}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{permission.method}</Badge>
+                </TableCell>
                 <TableCell>{permission.module}</TableCell>
                 <TableCell>
                   <Badge
