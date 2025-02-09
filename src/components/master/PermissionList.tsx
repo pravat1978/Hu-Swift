@@ -95,9 +95,11 @@ export default function PermissionList() {
                 <TableCell>{permission.module}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      permission.status === "active" ? "default" : "secondary"
-                    }
+                    className={cn(
+                      permission.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                    )}
                   >
                     {permission.status}
                   </Badge>

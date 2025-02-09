@@ -88,7 +88,11 @@ export default function UserList() {
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={user.status === "active" ? "default" : "secondary"}
+                    className={cn(
+                      user.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                    )}
                   >
                     {user.status}
                   </Badge>

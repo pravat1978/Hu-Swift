@@ -9,9 +9,10 @@ import {
   MapPin,
   ChevronDown,
   Truck,
-  Settings,
   Shield,
   UserCog,
+  Database,
+  Handshake as HandshakeIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,12 +105,17 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200 w-[280px]">
+    <div className="flex flex-col h-full bg-blue-50 border-r border-blue-200 w-[280px]">
       <div className="p-6 space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900">HuSwift</h1>
-        <p className="text-sm text-gray-500 italic">
-          Moving Smarter, Delivering Faster!
-        </p>
+        <div className="flex items-center gap-2">
+          <img src="/huswift-logo.svg" alt="HuSwift" className="h-12 w-12" />
+          <div>
+            <h1 className="text-2xl font-bold text-blue-700">HuSwift</h1>
+            <p className="text-sm text-blue-600 italic">
+              Moving Smarter, Delivering Faster!
+            </p>
+          </div>
+        </div>
       </div>
 
       <nav className="flex-1 p-4 space-y-4">
@@ -123,8 +129,8 @@ export default function Sidebar() {
                     className={cn(
                       "w-full justify-start gap-3 px-3",
                       location.pathname === item.href
-                        ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                        ? "bg-blue-100 text-blue-900"
+                        : "text-blue-700 hover:text-blue-900 hover:bg-blue-50",
                     )}
                   >
                     {item.icon}
@@ -145,7 +151,7 @@ export default function Sidebar() {
           <AccordionItem value="onboarding">
             <AccordionTrigger className="py-2 hover:no-underline">
               <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+                <HandshakeIcon className="w-4 h-4" />
                 <span className="text-sm font-semibold">Onboarding</span>
               </div>
             </AccordionTrigger>
@@ -174,7 +180,7 @@ export default function Sidebar() {
           <AccordionItem value="master">
             <AccordionTrigger className="py-2 hover:no-underline">
               <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+                <Database className="w-4 h-4" />
                 <span className="text-sm font-semibold">Master Data</span>
               </div>
             </AccordionTrigger>

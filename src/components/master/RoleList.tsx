@@ -88,7 +88,11 @@ export default function RoleList() {
                 <TableCell>{role.permissions.join(", ")}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={role.status === "active" ? "default" : "secondary"}
+                    className={cn(
+                      role.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                    )}
                   >
                     {role.status}
                   </Badge>

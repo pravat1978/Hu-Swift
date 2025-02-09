@@ -10,7 +10,9 @@ import OrganizationList from "@/components/organization/OrganizationList";
 import OrganizationForm from "@/components/organization/OrganizationForm";
 import WarehouseList from "@/components/locations/WarehouseList";
 import PermissionList from "@/components/master/PermissionList";
+import PermissionForm from "@/components/master/PermissionForm";
 import RoleList from "@/components/master/RoleList";
+import RoleForm from "@/components/master/RoleForm";
 import UserList from "@/components/users/UserList";
 import UserManagement from "@/components/users/UserManagement";
 import WarehouseForm from "@/components/locations/WarehouseForm";
@@ -76,8 +78,16 @@ function App() {
 
             {/* Master Data Routes */}
             <Route path="master">
-              <Route path="permissions" element={<PermissionList />} />
-              <Route path="roles" element={<RoleList />} />
+              <Route path="permissions">
+                <Route index element={<PermissionList />} />
+                <Route path="new" element={<PermissionForm />} />
+                <Route path=":id/edit" element={<PermissionForm />} />
+              </Route>
+              <Route path="roles">
+                <Route index element={<RoleList />} />
+                <Route path="new" element={<RoleForm />} />
+                <Route path=":id/edit" element={<RoleForm />} />
+              </Route>
             </Route>
           </Route>
         </Routes>

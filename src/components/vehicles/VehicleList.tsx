@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface Vehicle {
   id: string;
@@ -99,9 +100,11 @@ export default function VehicleList() {
                 <TableCell>{`${vehicle.make} ${vehicle.model}`}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      vehicle.status === "active" ? "default" : "secondary"
-                    }
+                    className={cn(
+                      vehicle.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                    )}
                   >
                     {vehicle.status}
                   </Badge>

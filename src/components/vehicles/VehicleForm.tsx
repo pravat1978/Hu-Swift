@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import VehicleMaintenance from "./VehicleMaintenance";
 
 export default function VehicleForm() {
   const [activeTab, setActiveTab] = useState("basic");
@@ -27,11 +28,12 @@ export default function VehicleForm() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="specs">Specifications</TabsTrigger>
           <TabsTrigger value="docs">Documents</TabsTrigger>
           <TabsTrigger value="tracking">Tracking</TabsTrigger>
+          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
         </TabsList>
 
         <Card className="mt-4 p-6">
@@ -212,6 +214,10 @@ export default function VehicleForm() {
                 <Input type="date" />
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="maintenance">
+            <VehicleMaintenance />
           </TabsContent>
         </Card>
       </Tabs>
