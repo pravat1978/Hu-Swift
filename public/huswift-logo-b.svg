@@ -1,0 +1,17 @@
+<svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Truck Body -->
+  <path d="M40 60 L120 60 L120 100 L40 100 Z" fill="#1E40AF"/>
+  <!-- Front Section -->
+  <path d="M120 60 L140 70 L140 100 L120 100 Z" fill="#1E40AF"/>
+  <!-- Wheels -->
+  <circle cx="60" cy="105" r="10" fill="#1F2937"/>
+  <circle cx="120" cy="105" r="10" fill="#1F2937"/>
+  <!-- Clock Circle -->
+  <circle cx="160" cy="75" r="25" fill="#F97316"/>
+  <!-- Checkmark -->
+  <path d="M150 75 L158 83 L170 65" stroke="white" stroke-width="4"/>
+  <!-- Speed Lines -->
+  <path d="M20 70 L35 70" stroke="#1E40AF" stroke-width="3"/>
+  <path d="M20 80 L35 80" stroke="#1E40AF" stroke-width="3"/>
+  <path d="M20 90 L35 90" stroke="#1E40AF" stroke-width="3"/>
+</svg>

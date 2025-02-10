@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface Role {
   id: string;
@@ -87,11 +88,12 @@ export default function RoleList() {
                 <TableCell>{role.description}</TableCell>
                 <TableCell>{role.permissions.join(", ")}</TableCell>
                 <TableCell>
-                  <Badge
+
+                <Badge
                     className={cn(
                       role.status === "active"
                         ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                        : "bg-red-500 hover:bg-red-600 text-white",
                     )}
                   >
                     {role.status}

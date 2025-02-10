@@ -168,9 +168,7 @@ export default function Sidebar() {
                     <span className="text-sm font-semibold">Onboarding</span>
                   )}
                 </div>
-                {!isCollapsed && (
-                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                )}
+
               </AccordionTrigger>
               <AccordionContent className="px-1">
                 <div className="space-y-1 pt-1">
@@ -217,9 +215,6 @@ export default function Sidebar() {
                     <span className="text-sm font-semibold">Master Data</span>
                   )}
                 </div>
-                {!isCollapsed && (
-                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                )}
               </AccordionTrigger>
               <AccordionContent className="px-1">
                 <div className="space-y-1 pt-1">

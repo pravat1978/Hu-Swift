@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import { cn } from "@/lib/utils";
 interface User {
   id: string;
   name: string;
@@ -91,11 +91,12 @@ export default function UserList() {
                     className={cn(
                       user.status === "active"
                         ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                        : "bg-red-500 hover:bg-red-600 text-white",
                     )}
                   >
                     {user.status}
                   </Badge>
+
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">

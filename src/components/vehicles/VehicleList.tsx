@@ -103,7 +103,7 @@ export default function VehicleList() {
                     className={cn(
                       vehicle.status === "active"
                         ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-500 hover:bg-gray-600 text-white",
+                        : "bg-red-500 hover:bg-gray-600 text-white",
                     )}
                   >
                     {vehicle.status}
