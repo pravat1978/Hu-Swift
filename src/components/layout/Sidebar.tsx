@@ -13,6 +13,8 @@ import {
   UserCog,
   Database,
   Handshake as HandshakeIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +29,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useState } from "react";
 
 interface NavItem {
   icon: React.ReactNode;
@@ -90,35 +93,38 @@ const onboardingItems: NavItem[] = [
 
 export default function Sidebar() {
   const location = useLocation();
-
-  // Determine which accordion items should be open based on current path
-  const defaultAccordionValues = [];
-  if (location.pathname.includes("/master")) {
-    defaultAccordionValues.push("master");
-  }
-  if (
-    ["/organization", "/locations", "/drivers", "/vehicles", "/users"].some(
-      (path) => location.pathname.includes(path),
-    )
-  ) {
-    defaultAccordionValues.push("onboarding");
-  }
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="flex flex-col h-full bg-blue-50 border-r border-blue-200 w-[280px]">
-      <div className="p-6 space-y-1">
-        <div className="flex items-center gap-2">
+    <div
+      className={cn(
+        "flex flex-col h-full bg-blue-900 border-r border-blue-800 transition-all duration-300",
+        isCollapsed ? "w-[80px]" : "w-[280px]",
+      )}
+    >
+      <div className="p-6 flex justify-between items-center border-b border-blue-800">
+        <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
           <img src="/huswift-logo.svg" alt="HuSwift" className="h-12 w-12" />
           <div>
-            <h1 className="text-2xl font-bold text-blue-700">HuSwift</h1>
-            <p className="text-sm text-blue-600 italic">
-              Moving Smarter, Delivering Faster!
-            </p>
+            <h1 className="text-2xl font-bold text-white">HuSwift</h1>
+            <p className="text-sm text-blue-300 italic">Moving Smarter!</p>
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-blue-800"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
-      <nav className="flex-1 p-4 space-y-4">
+      <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
         <TooltipProvider>
           {mainNavItems.map((item) => (
             <Tooltip key={item.href}>
@@ -127,85 +133,132 @@ export default function Sidebar() {
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start gap-3 px-3",
-                      location.pathname === item.href
-                        ? "bg-blue-100 text-blue-900"
-                        : "text-blue-700 hover:text-blue-900 hover:bg-blue-50",
+                      "w-full justify-start gap-3 px-3 text-white hover:bg-blue-800",
+                      location.pathname === item.href && "bg-blue-800",
                     )}
                   >
                     {item.icon}
-                    <span className="flex-1 text-left">{item.label}</span>
+                    <span
+                      className={cn(
+                        "flex-1 text-left",
+                        isCollapsed && "hidden",
+                      )}
+                    >
+                      {item.label}
+                    </span>
                   </Button>
                 </Link>
               </TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
+              {isCollapsed && (
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              )}
             </Tooltip>
           ))}
+
+          <Accordion
+            type="multiple"
+            defaultValue={["onboarding", "master"]}
+            className="space-y-2"
+          >
+            <AccordionItem value="onboarding" className="border-none">
+              <AccordionTrigger className="flex items-center justify-between rounded-lg px-3 py-2 text-white hover:bg-blue-800 hover:no-underline data-[state=open]:bg-blue-800">
+                <div className="flex items-center gap-2">
+                  <HandshakeIcon className="h-5 w-5" />
+                  {!isCollapsed && (
+                    <span className="text-sm font-semibold">Onboarding</span>
+                  )}
+                </div>
+                {!isCollapsed && (
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                )}
+              </AccordionTrigger>
+              <AccordionContent className="px-1">
+                <div className="space-y-1 pt-1">
+                  {onboardingItems.map((item) => (
+                    <Tooltip key={item.href}>
+                      <TooltipTrigger asChild>
+                        <Link to={item.href}>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start gap-3 px-3 text-white hover:bg-blue-800",
+                              location.pathname.includes(item.href) &&
+                                "bg-blue-800",
+                            )}
+                          >
+                            {item.icon}
+                            <span
+                              className={cn(
+                                "flex-1 text-left",
+                                isCollapsed && "hidden",
+                              )}
+                            >
+                              {item.label}
+                            </span>
+                          </Button>
+                        </Link>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {item.label}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="master" className="border-none">
+              <AccordionTrigger className="flex items-center justify-between rounded-lg px-3 py-2 text-white hover:bg-blue-800 hover:no-underline data-[state=open]:bg-blue-800">
+                <div className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  {!isCollapsed && (
+                    <span className="text-sm font-semibold">Master Data</span>
+                  )}
+                </div>
+                {!isCollapsed && (
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                )}
+              </AccordionTrigger>
+              <AccordionContent className="px-1">
+                <div className="space-y-1 pt-1">
+                  {masterDataItems.map((item) => (
+                    <Tooltip key={item.href}>
+                      <TooltipTrigger asChild>
+                        <Link to={item.href}>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start gap-3 px-3 text-white hover:bg-blue-800",
+                              location.pathname.includes(item.href) &&
+                                "bg-blue-800",
+                            )}
+                          >
+                            {item.icon}
+                            <span
+                              className={cn(
+                                "flex-1 text-left",
+                                isCollapsed && "hidden",
+                              )}
+                            >
+                              {item.label}
+                            </span>
+                          </Button>
+                        </Link>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {item.label}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </TooltipProvider>
-
-        <Accordion
-          type="multiple"
-          className="w-full"
-          defaultValue={defaultAccordionValues}
-        >
-          <AccordionItem value="onboarding">
-            <AccordionTrigger className="py-2 hover:no-underline">
-              <div className="flex items-center gap-2">
-                <HandshakeIcon className="w-4 h-4" />
-                <span className="text-sm font-semibold">Onboarding</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-1 pt-1">
-                {onboardingItems.map((item) => (
-                  <Link key={item.href} to={item.href}>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start gap-3 px-3",
-                        location.pathname === item.href
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                      )}
-                    >
-                      {item.icon}
-                      <span className="flex-1 text-left">{item.label}</span>
-                    </Button>
-                  </Link>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="master">
-            <AccordionTrigger className="py-2 hover:no-underline">
-              <div className="flex items-center gap-2">
-                <Database className="w-4 h-4" />
-                <span className="text-sm font-semibold">Master Data</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-1 pt-1">
-                {masterDataItems.map((item) => (
-                  <Link key={item.href} to={item.href}>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start gap-3 px-3",
-                        location.pathname === item.href
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                      )}
-                    >
-                      {item.icon}
-                      <span className="flex-1 text-left">{item.label}</span>
-                    </Button>
-                  </Link>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
       </nav>
     </div>
   );
