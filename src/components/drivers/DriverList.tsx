@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface Driver {
   id: string;
@@ -97,9 +98,11 @@ export default function DriverList() {
                 <TableCell>{driver.licenseExpiry}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      driver.status === "active" ? "default" : "secondary"
-                    }
+                    className={cn(
+                      driver.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-red-500 hover:bg-red-600 text-white",
+                    )}
                   >
                     {driver.status}
                   </Badge>

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface Organization {
   id: string;
@@ -87,8 +88,12 @@ export default function OrganizationList() {
                 <TableCell>{org.type}</TableCell>
                 <TableCell>{org.industry}</TableCell>
                 <TableCell>
-                  <Badge
-                    variant={org.status === "active" ? "default" : "secondary"}
+                <Badge
+                    className={cn(
+                      org.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-red-500 hover:bg-red-600 text-white",
+                    )}
                   >
                     {org.status}
                   </Badge>
