@@ -48,14 +48,7 @@ export default function OrganizationList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Organizations</h1>
-        <Button onClick={() => navigate("/organization/new")}>
-          <Plus className="w-4 h-4 mr-2" /> Add Organization
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between space-x-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -88,7 +81,7 @@ export default function OrganizationList() {
                 <TableCell>{org.type}</TableCell>
                 <TableCell>{org.industry}</TableCell>
                 <TableCell>
-                <Badge
+                  <Badge
                     className={cn(
                       org.status === "active"
                         ? "bg-green-500 hover:bg-green-600 text-white"

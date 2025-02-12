@@ -69,9 +69,9 @@ const DataTable = ({
   };
 
   return (
-    <div className="w-full bg-white p-4 rounded-lg shadow">
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative w-64">
+    <div className="w-full bg-white p-4 rounded-lg shadow overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             placeholder={`Search ${type}s...`}

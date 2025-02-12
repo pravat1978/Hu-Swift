@@ -12,14 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface FleetYard {
   id: string;
   name: string;
   code: string;
+  location: string;
   capacity: string;
   manager: string;
-  maintenanceFacility: boolean;
   status: "active" | "inactive";
 }
 
@@ -27,10 +28,10 @@ const demoFleetYards: FleetYard[] = [
   {
     id: "1",
     name: "Mumbai Central Fleet Yard",
-    code: "MCFY001",
+    code: "MCF001",
+    location: "Mumbai, Maharashtra",
     capacity: "100 vehicles",
     manager: "Rahul Shah",
-    maintenanceFacility: true,
     status: "active",
   },
 ];
@@ -47,14 +48,7 @@ export default function FleetYardList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Fleet Yards</h1>
-        <Button onClick={() => navigate("/locations/fleet-yards/new")}>
-          <Plus className="w-4 h-4 mr-2" /> Add Fleet Yard
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between space-x-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -72,9 +66,9 @@ export default function FleetYardList() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Code</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Capacity</TableHead>
               <TableHead>Manager</TableHead>
-              <TableHead>Maintenance Facility</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -84,18 +78,16 @@ export default function FleetYardList() {
               <TableRow key={yard.id}>
                 <TableCell>{yard.name}</TableCell>
                 <TableCell>{yard.code}</TableCell>
+                <TableCell>{yard.location}</TableCell>
                 <TableCell>{yard.capacity}</TableCell>
                 <TableCell>{yard.manager}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={yard.maintenanceFacility ? "default" : "secondary"}
-                  >
-                    {yard.maintenanceFacility ? "Yes" : "No"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={yard.status === "active" ? "default" : "secondary"}
+                    className={cn(
+                      yard.status === "active"
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-red-500 hover:bg-red-600 text-white",
+                    )}
                   >
                     {yard.status}
                   </Badge>

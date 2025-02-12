@@ -74,13 +74,6 @@ export default function OrganizationForm() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Add New Organization</h1>
-        <Button variant="outline" onClick={() => navigate("/organization")}>
-          Cancel
-        </Button>
-      </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>

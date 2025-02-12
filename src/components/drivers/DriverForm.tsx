@@ -27,13 +27,6 @@ export default function DriverForm() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Add New Driver</h1>
-        <Button variant="outline" onClick={() => navigate("/drivers")}>
-          Cancel
-        </Button>
-      </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="personal">Personal Info</TabsTrigger>

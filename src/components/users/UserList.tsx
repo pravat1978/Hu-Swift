@@ -50,14 +50,7 @@ export default function UserList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Users</h1>
-        <Button onClick={() => navigate("/users/new")}>
-          <Plus className="w-4 h-4 mr-2" /> Add User
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between space-x-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -96,7 +89,6 @@ export default function UserList() {
                   >
                     {user.status}
                   </Badge>
-
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">

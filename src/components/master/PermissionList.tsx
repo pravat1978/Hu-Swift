@@ -54,14 +54,7 @@ export default function PermissionList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Permissions</h1>
-        <Button onClick={() => navigate("/master/permissions/new")}>
-          <Plus className="w-4 h-4 mr-2" /> Add Permission
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between space-x-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -95,8 +88,7 @@ export default function PermissionList() {
                 </TableCell>
                 <TableCell>{permission.module}</TableCell>
                 <TableCell>
-
-                <Badge
+                  <Badge
                     className={cn(
                       permission.status === "active"
                         ? "bg-green-500 hover:bg-green-600 text-white"

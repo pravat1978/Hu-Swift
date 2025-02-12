@@ -20,13 +20,6 @@ export default function VehicleForm() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Add New Vehicle</h1>
-        <Button variant="outline" onClick={() => navigate("/vehicles")}>
-          Cancel
-        </Button>
-      </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>

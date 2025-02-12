@@ -40,16 +40,6 @@ export default function PermissionForm() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Add New Permission</h1>
-        <Button
-          variant="outline"
-          onClick={() => navigate("/master/permissions")}
-        >
-          Cancel
-        </Button>
-      </div>
-
       <Card className="p-6 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">

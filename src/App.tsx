@@ -1,6 +1,9 @@
 import { Suspense } from "react";
-import { Routes, Route, useRoutes } from "react-router-dom";
+import { Routes, Route, useRoutes, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import LoginForm from "@/components/auth/LoginForm";
 import Home from "@/components/home";
 import VehicleList from "@/components/vehicles/VehicleList";
 import VehicleForm from "@/components/vehicles/VehicleForm";
@@ -22,77 +25,92 @@ import routes from "tempo-routes";
 
 function App() {
   return (
-    <div className="min-h-screen">
-      {/* Tempo routes */}
-      {import.meta.env.VITE_TEMPO && useRoutes(routes)}
+    <AuthProvider>
+      <div className="min-h-screen">
+        {/* Tempo routes */}
+        {import.meta.env.VITE_TEMPO && useRoutes(routes)}
 
-      {/* App routes */}
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          <Route element={<DashboardLayout />}>
-            {/* Dashboard */}
-            <Route index element={<Home />} />
+        {/* App routes */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginForm />} />
 
-            {/* Onboarding Routes */}
-            {/* Organizations */}
-            <Route path="organization">
-              <Route index element={<OrganizationList />} />
-              <Route path="new" element={<OrganizationForm />} />
-              <Route path=":id/edit" element={<OrganizationForm />} />
-            </Route>
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Home />} />
 
-            {/* Warehouses */}
-            <Route path="locations/warehouses">
-              <Route index element={<WarehouseList />} />
-              <Route path="new" element={<WarehouseForm />} />
-              <Route path=":id/edit" element={<WarehouseForm />} />
-            </Route>
-
-            {/* Fleet Yards */}
-            <Route path="locations/fleet-yards">
-              <Route index element={<FleetYardList />} />
-              <Route path="new" element={<FleetYardForm />} />
-              <Route path=":id/edit" element={<FleetYardForm />} />
-            </Route>
-
-            {/* Drivers */}
-            <Route path="drivers">
-              <Route index element={<DriverList />} />
-              <Route path="new" element={<DriverForm />} />
-              <Route path=":id/edit" element={<DriverForm />} />
-            </Route>
-
-            {/* Vehicles */}
-            <Route path="vehicles">
-              <Route index element={<VehicleList />} />
-              <Route path="new" element={<VehicleForm />} />
-              <Route path=":id/edit" element={<VehicleForm />} />
-            </Route>
-
-            {/* Users */}
-            <Route path="users">
-              <Route index element={<UserList />} />
-              <Route path="new" element={<UserManagement />} />
-              <Route path=":id/edit" element={<UserManagement />} />
-            </Route>
-
-            {/* Master Data Routes */}
-            <Route path="master">
-              <Route path="permissions">
-                <Route index element={<PermissionList />} />
-                <Route path="new" element={<PermissionForm />} />
-                <Route path=":id/edit" element={<PermissionForm />} />
+              {/* Onboarding Routes */}
+              {/* Organizations */}
+              <Route path="organization">
+                <Route index element={<OrganizationList />} />
+                <Route path="new" element={<OrganizationForm />} />
+                <Route path=":id/edit" element={<OrganizationForm />} />
               </Route>
-              <Route path="roles">
-                <Route index element={<RoleList />} />
-                <Route path="new" element={<RoleForm />} />
-                <Route path=":id/edit" element={<RoleForm />} />
+
+              {/* Warehouses */}
+              <Route path="locations/warehouses">
+                <Route index element={<WarehouseList />} />
+                <Route path="new" element={<WarehouseForm />} />
+                <Route path=":id/edit" element={<WarehouseForm />} />
+              </Route>
+
+              {/* Fleet Yards */}
+              <Route path="locations/fleet-yards">
+                <Route index element={<FleetYardList />} />
+                <Route path="new" element={<FleetYardForm />} />
+                <Route path=":id/edit" element={<FleetYardForm />} />
+              </Route>
+
+              {/* Drivers */}
+              <Route path="drivers">
+                <Route index element={<DriverList />} />
+                <Route path="new" element={<DriverForm />} />
+                <Route path=":id/edit" element={<DriverForm />} />
+              </Route>
+
+              {/* Vehicles */}
+              <Route path="vehicles">
+                <Route index element={<VehicleList />} />
+                <Route path="new" element={<VehicleForm />} />
+                <Route path=":id/edit" element={<VehicleForm />} />
+              </Route>
+
+              {/* Users */}
+              <Route path="users">
+                <Route index element={<UserList />} />
+                <Route path="new" element={<UserManagement />} />
+                <Route path=":id/edit" element={<UserManagement />} />
+              </Route>
+
+              {/* Master Data Routes */}
+              <Route path="master">
+                <Route path="permissions">
+                  <Route index element={<PermissionList />} />
+                  <Route path="new" element={<PermissionForm />} />
+                  <Route path=":id/edit" element={<PermissionForm />} />
+                </Route>
+                <Route path="roles">
+                  <Route index element={<RoleList />} />
+                  <Route path="new" element={<RoleForm />} />
+                  <Route path=":id/edit" element={<RoleForm />} />
+                </Route>
               </Route>
             </Route>
-          </Route>
-        </Routes>
-      </Suspense>
-    </div>
+
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </div>
+    </AuthProvider>
   );
 }
 
