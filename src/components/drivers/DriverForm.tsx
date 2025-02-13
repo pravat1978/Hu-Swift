@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -11,28 +12,194 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ReactSelect from "react-select";
-import { useNavigate } from "react-router-dom";
 
-const organizations = [
-  { value: "org1", label: "Organization 1" },
-  { value: "org2", label: "Organization 2" },
-  { value: "org3", label: "Organization 3" },
-  // Add more organizations as needed
-];
+interface DriverFormData {
+  personalDetails: {
+    dateOfBirth: string;
+    gender: string;
+    name: string;
+  };
+  contactDetails: {
+    mobileNumber: string;
+    email: string;
+  };
+  licenseDetails: {
+    licenseNumber: string;
+    licenseExpiryDate: string;
+    type: string;
+    issuingAuthority: string;
+  };
+  vehicleAssigned: {
+    vehicleId: string;
+    vehicleType: string;
+  };
+  employmentDetails: {
+    employeeId: string;
+    joiningDate: string;
+    salary: number;
+    shiftStartTime: string;
+    shiftEndTime: string;
+  };
+  emergencyContact: {
+    name: string;
+    relation: string;
+    phoneNumber: string;
+  };
+  documentsUpload: {
+    license: string;
+    aadhar: string;
+    pan: string;
+    policeVerification: string;
+  };
+  address: {
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    state: string;
+    country: string;
+    pincode: string;
+  };
+}
+
+const initialFormData: DriverFormData = {
+  personalDetails: {
+    dateOfBirth: "",
+    gender: "",
+    name: "",
+  },
+  contactDetails: {
+    mobileNumber: "",
+    email: "",
+  },
+  licenseDetails: {
+    licenseNumber: "",
+    licenseExpiryDate: "",
+    type: "Commercial",
+    issuingAuthority: "Regional Transport Office",
+  },
+  vehicleAssigned: {
+    vehicleId: "",
+    vehicleType: "Truck",
+  },
+  employmentDetails: {
+    employeeId: "",
+    joiningDate: "",
+    salary: 0,
+    shiftStartTime: "",
+    shiftEndTime: "",
+  },
+  emergencyContact: {
+    name: "",
+    relation: "",
+    phoneNumber: "",
+  },
+  documentsUpload: {
+    license: "",
+    aadhar: "",
+    pan: "",
+    policeVerification: "",
+  },
+  address: {
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    country: "India",
+    pincode: "",
+  },
+};
 
 export default function DriverForm() {
-  const [activeTab, setActiveTab] = useState("personal");
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("personal");
+  const [formData, setFormData] = useState<DriverFormData>(initialFormData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      fetchDriver();
+    }
+  }, [id]);
+
+  const fetchDriver = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `https://apis.huswift.hutechweb.com/drivers/${id}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch driver");
+      const data = await response.json();
+      setFormData(data);
+    } catch (error) {
+      console.error("Error fetching driver:", error);
+      setError("Failed to fetch driver details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const url = id
+        ? `https://apis.huswift.hutechweb.com/drivers/${id}`
+        : "https://apis.huswift.hutechweb.com/drivers/onboard";
+
+      const response = await fetch(url, {
+        method: id ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to save driver");
+
+      navigate("/drivers");
+    } catch (error) {
+      console.error("Error saving driver:", error);
+      setError("Failed to save driver. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFormData = (
+    section: keyof DriverFormData,
+    field: string,
+    value: any,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="personal">Personal Info</TabsTrigger>
           <TabsTrigger value="license">License Details</TabsTrigger>
           <TabsTrigger value="employment">Employment</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="additional">Additional Info</TabsTrigger>
         </TabsList>
 
         <Card className="mt-4 p-6">
@@ -40,116 +207,67 @@ export default function DriverForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Full Name</Label>
-                <Input placeholder="Enter full name" />
+                <Input
+                  value={formData.personalDetails.name}
+                  onChange={(e) =>
+                    updateFormData("personalDetails", "name", e.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Date of Birth</Label>
-                <Input type="date" />
+                <Input
+                  type="date"
+                  value={formData.personalDetails.dateOfBirth}
+                  onChange={(e) =>
+                    updateFormData(
+                      "personalDetails",
+                      "dateOfBirth",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Gender</Label>
-                <Select>
+                <Select
+                  value={formData.personalDetails.gender}
+                  onValueChange={(value) =>
+                    updateFormData("personalDetails", "gender", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Organization</Label>
-                <ReactSelect
-                  options={organizations}
-                  placeholder="Select organization"
-                  isSearchable
+                <Label>Phone</Label>
+                <Input
+                  value={formData.contactDetails.mobileNumber}
+                  onChange={(e) =>
+                    updateFormData(
+                      "contactDetails",
+                      "mobileNumber",
+                      e.target.value,
+                    )
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input placeholder="Enter phone number" />
-              </div>
-              <div className="space-y-2">
                 <Label>Email</Label>
-                <Input type="email" placeholder="Enter email address" />
-              </div>
-              <div className="col-span-2 space-y-4">
-                <h3 className="font-medium">Address</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Address Line 1</Label>
-                    <Input placeholder="Enter address line 1" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Address Line 2</Label>
-                    <Input placeholder="Enter address line 2" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>City</Label>
-                    <Input placeholder="Enter city" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>State</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AN">
-                          Andaman and Nicobar Islands
-                        </SelectItem>
-                        <SelectItem value="AP">Andhra Pradesh</SelectItem>
-                        <SelectItem value="AR">Arunachal Pradesh</SelectItem>
-                        <SelectItem value="AS">Assam</SelectItem>
-                        <SelectItem value="BR">Bihar</SelectItem>
-                        <SelectItem value="CH">Chandigarh</SelectItem>
-                        <SelectItem value="CT">Chhattisgarh</SelectItem>
-                        <SelectItem value="DN">
-                          Dadra and Nagar Haveli
-                        </SelectItem>
-                        <SelectItem value="DD">Daman and Diu</SelectItem>
-                        <SelectItem value="DL">Delhi</SelectItem>
-                        <SelectItem value="GA">Goa</SelectItem>
-                        <SelectItem value="GJ">Gujarat</SelectItem>
-                        <SelectItem value="HR">Haryana</SelectItem>
-                        <SelectItem value="HP">Himachal Pradesh</SelectItem>
-                        <SelectItem value="JK">Jammu and Kashmir</SelectItem>
-                        <SelectItem value="JH">Jharkhand</SelectItem>
-                        <SelectItem value="KA">Karnataka</SelectItem>
-                        <SelectItem value="KL">Kerala</SelectItem>
-                        <SelectItem value="LA">Ladakh</SelectItem>
-                        <SelectItem value="LD">Lakshadweep</SelectItem>
-                        <SelectItem value="MP">Madhya Pradesh</SelectItem>
-                        <SelectItem value="MH">Maharashtra</SelectItem>
-                        <SelectItem value="MN">Manipur</SelectItem>
-                        <SelectItem value="ML">Meghalaya</SelectItem>
-                        <SelectItem value="MZ">Mizoram</SelectItem>
-                        <SelectItem value="NL">Nagaland</SelectItem>
-                        <SelectItem value="OR">Odisha</SelectItem>
-                        <SelectItem value="PY">Puducherry</SelectItem>
-                        <SelectItem value="PB">Punjab</SelectItem>
-                        <SelectItem value="RJ">Rajasthan</SelectItem>
-                        <SelectItem value="SK">Sikkim</SelectItem>
-                        <SelectItem value="TN">Tamil Nadu</SelectItem>
-                        <SelectItem value="TG">Telangana</SelectItem>
-                        <SelectItem value="TR">Tripura</SelectItem>
-                        <SelectItem value="UP">Uttar Pradesh</SelectItem>
-                        <SelectItem value="UT">Uttarakhand</SelectItem>
-                        <SelectItem value="WB">West Bengal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Pincode</Label>
-                    <Input placeholder="Enter pincode" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Country</Label>
-                    <Input value="India" disabled />
-                  </div>
-                </div>
+                <Input
+                  type="email"
+                  value={formData.contactDetails.email}
+                  onChange={(e) =>
+                    updateFormData("contactDetails", "email", e.target.value)
+                  }
+                />
               </div>
             </div>
           </TabsContent>
@@ -158,27 +276,52 @@ export default function DriverForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>License Number</Label>
-                <Input placeholder="Enter license number" />
+                <Input
+                  value={formData.licenseDetails.licenseNumber}
+                  onChange={(e) =>
+                    updateFormData(
+                      "licenseDetails",
+                      "licenseNumber",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>License Type</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select license type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lmv">LMV</SelectItem>
-                    <SelectItem value="hmv">HMV</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={formData.licenseDetails.type}
+                  onChange={(e) =>
+                    updateFormData("licenseDetails", "type", e.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Issuing Authority</Label>
-                <Input placeholder="Enter issuing authority" />
+                <Input
+                  value={formData.licenseDetails.issuingAuthority}
+                  onChange={(e) =>
+                    updateFormData(
+                      "licenseDetails",
+                      "issuingAuthority",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Expiry Date</Label>
-                <Input type="date" />
+                <Input
+                  type="date"
+                  value={formData.licenseDetails.licenseExpiryDate}
+                  onChange={(e) =>
+                    updateFormData(
+                      "licenseDetails",
+                      "licenseExpiryDate",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
             </div>
           </TabsContent>
@@ -187,69 +330,157 @@ export default function DriverForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Employee ID</Label>
-                <Input placeholder="Enter employee ID" />
+                <Input
+                  value={formData.employmentDetails.employeeId}
+                  onChange={(e) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "employeeId",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Joining Date</Label>
-                <Input type="date" />
+                <Input
+                  type="date"
+                  value={formData.employmentDetails.joiningDate}
+                  onChange={(e) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "joiningDate",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Salary</Label>
-                <Input type="number" placeholder="Enter salary" />
+                <Input
+                  type="number"
+                  value={formData.employmentDetails.salary}
+                  onChange={(e) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "salary",
+                      parseInt(e.target.value),
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Shift Timings</Label>
-                <Input placeholder="Enter shift timings" />
+                <Label>Shift Start Time</Label>
+                <Input
+                  type="time"
+                  value={formData.employmentDetails.shiftStartTime}
+                  onChange={(e) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "shiftStartTime",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Bank Name</Label>
-                <Input placeholder="Enter bank name" />
-              </div>
-              <div className="space-y-2">
-                <Label>Account Number</Label>
-                <Input placeholder="Enter account number" />
-              </div>
-              <div className="space-y-2">
-                <Label>IFSC Code</Label>
-                <Input placeholder="Enter IFSC code" />
+                <Label>Shift End Time</Label>
+                <Input
+                  type="time"
+                  value={formData.employmentDetails.shiftEndTime}
+                  onChange={(e) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "shiftEndTime",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="documents" className="space-y-4">
+          <TabsContent value="additional" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Emergency Contact Name</Label>
-                <Input placeholder="Enter emergency contact name" />
+                <Input
+                  value={formData.emergencyContact.name}
+                  onChange={(e) =>
+                    updateFormData("emergencyContact", "name", e.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Emergency Contact Relation</Label>
-                <Input placeholder="Enter relation" />
+                <Label>Relation</Label>
+                <Input
+                  value={formData.emergencyContact.relation}
+                  onChange={(e) =>
+                    updateFormData(
+                      "emergencyContact",
+                      "relation",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Emergency Contact Phone</Label>
-                <Input placeholder="Enter emergency contact phone" />
+                <Input
+                  value={formData.emergencyContact.phoneNumber}
+                  onChange={(e) =>
+                    updateFormData(
+                      "emergencyContact",
+                      "phoneNumber",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Aadhar Number</Label>
-                <Input placeholder="Enter Aadhar number" />
+                <Label>Address Line 1</Label>
+                <Input
+                  value={formData.address.addressLine1}
+                  onChange={(e) =>
+                    updateFormData("address", "addressLine1", e.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>PAN Number</Label>
-                <Input placeholder="Enter PAN number" />
+                <Label>Address Line 2</Label>
+                <Input
+                  value={formData.address.addressLine2}
+                  onChange={(e) =>
+                    updateFormData("address", "addressLine2", e.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Police Verification Status</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="verified">Verified</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="not_verified">Not Verified</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>City</Label>
+                <Input
+                  value={formData.address.city}
+                  onChange={(e) =>
+                    updateFormData("address", "city", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Input
+                  value={formData.address.state}
+                  onChange={(e) =>
+                    updateFormData("address", "state", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Pincode</Label>
+                <Input
+                  value={formData.address.pincode}
+                  onChange={(e) =>
+                    updateFormData("address", "pincode", e.target.value)
+                  }
+                />
               </div>
             </div>
           </TabsContent>
@@ -260,7 +491,9 @@ export default function DriverForm() {
         <Button variant="outline" onClick={() => navigate("/drivers")}>
           Cancel
         </Button>
-        <Button onClick={() => console.log("Save driver")}>Save Driver</Button>
+        <Button onClick={handleSubmit} disabled={loading}>
+          {id ? "Update" : "Save"} Driver
+        </Button>
       </div>
     </div>
   );

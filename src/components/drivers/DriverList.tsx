@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -16,44 +16,89 @@ import { cn } from "@/lib/utils";
 
 interface Driver {
   id: string;
-  name: string;
-  phone: string;
-  licenseNumber: string;
-  licenseExpiry: string;
-  status: "active" | "inactive";
-  assignedVehicles: string[];
+  personalDetails: {
+    name: string;
+    dateOfBirth: string;
+    gender: string;
+  };
+  contactDetails: {
+    mobileNumber: string;
+    email: string;
+  };
+  licenseDetails: {
+    licenseNumber: string;
+    licenseExpiryDate: string;
+    type: string;
+    issuingAuthority: string;
+  };
+  vehicleAssigned: {
+    vehicleId: string;
+    vehicleType: string;
+  };
 }
-
-const demoDrivers: Driver[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    phone: "+91 98765 43210",
-    licenseNumber: "DL123456",
-    licenseExpiry: "2025-12-31",
-    status: "active",
-    assignedVehicles: ["KA01AB1234"],
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    phone: "+91 98765 43211",
-    licenseNumber: "DL789012",
-    licenseExpiry: "2024-10-15",
-    status: "inactive",
-    assignedVehicles: [],
-  },
-];
 
 export default function DriverList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const filteredDrivers = demoDrivers.filter((driver) =>
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  const fetchDrivers = async () => {
+    try {
+      const response = await fetch(
+        "https://apis.huswift.hutechweb.com/drivers/page/1",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch drivers");
+      }
+      const data = await response.json();
+
+      // Transform the API response to match our interface
+      const transformedDrivers: Driver[] = data.drivers || [];
+
+      setDrivers(transformedDrivers);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch drivers. Please try again later.");
+      console.error("Error fetching drivers:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredDrivers = drivers.filter((driver) =>
     Object.values(driver).some((value) =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -67,6 +112,9 @@ export default function DriverList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/drivers/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add Driver
+        </Button>
       </div>
 
       <div className="border rounded-lg">
@@ -83,48 +131,59 @@ export default function DriverList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDrivers.map((driver) => (
-              <TableRow key={driver.id}>
-                <TableCell>{driver.name}</TableCell>
-                <TableCell>{driver.phone}</TableCell>
-                <TableCell>{driver.licenseNumber}</TableCell>
-                <TableCell>{driver.licenseExpiry}</TableCell>
-                <TableCell>
-                  <Badge
-                    className={cn(
-                      driver.status === "active"
-                        ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-red-500 hover:bg-red-600 text-white",
-                    )}
-                  >
-                    {driver.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {driver.assignedVehicles.length > 0
-                    ? driver.assignedVehicles.join(", ")
-                    : "None"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate(`/drivers/${driver.id}/edit`)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => console.log("Toggle status")}
-                    >
-                      <Power className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {filteredDrivers.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-8 text-gray-500"
+                >
+                  No drivers found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredDrivers.map((driver) => (
+                <TableRow key={driver.id}>
+                  <TableCell>{driver.personalDetails.name || "N/A"}</TableCell>
+                  <TableCell>
+                    {driver.contactDetails.mobileNumber || "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {driver.licenseDetails.licenseNumber || "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {driver.licenseDetails.licenseExpiryDate || "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                      Active
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {driver.vehicleAssigned.vehicleId
+                      ? `${driver.vehicleAssigned.vehicleId} (${driver.vehicleAssigned.vehicleType})`
+                      : "None"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/drivers/${driver.id}/edit`)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => console.log("Toggle status")}
+                      >
+                        <Power className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
