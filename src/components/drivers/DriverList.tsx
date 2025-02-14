@@ -35,6 +35,8 @@ interface Driver {
     vehicleId: string;
     vehicleType: string;
   };
+  status: "active" | "inactive";
+  createdAt?: string;
 }
 
 export default function DriverList() {
@@ -42,16 +44,20 @@ export default function DriverList() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDrivers();
-  }, []);
+    fetchDrivers(currentPage);
+  }, [currentPage]);
 
-  const fetchDrivers = async () => {
+  const fetchDrivers = async (page: number) => {
     try {
+      setLoading(true);
       const response = await fetch(
-        "https://apis.huswift.hutechweb.com/drivers/page/1",
+        `https://apis.huswift.hutechweb.com/drivers/page/${page}`,
         {
           method: "GET",
           headers: {
@@ -67,16 +73,60 @@ export default function DriverList() {
       }
       const data = await response.json();
 
-      // Transform the API response to match our interface
-      const transformedDrivers: Driver[] = data.drivers || [];
+      // Always sort drivers by creation date (newest first)
+      const transformedDrivers: Driver[] = (data.drivers || []).sort(
+        (a: Driver, b: Driver) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA;
+        },
+      );
 
       setDrivers(transformedDrivers);
+      setTotalPages(data.totalPages || 8);
       setError(null);
     } catch (err) {
       setError("Failed to fetch drivers. Please try again later.");
       console.error("Error fetching drivers:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (driverId: string) => {
+    try {
+      setUpdatingId(driverId);
+      const response = await fetch(
+        `https://apis.huswift.hutechweb.com/drivers/${driverId}/toggle-status`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to toggle status");
+
+      // Update the driver status locally
+      setDrivers((prevDrivers) =>
+        prevDrivers.map((driver) =>
+          driver.id === driverId
+            ? {
+                ...driver,
+                status: driver.status === "active" ? "inactive" : "active",
+              }
+            : driver,
+        ),
+      );
+    } catch (err) {
+      console.error("Error toggling driver status:", err);
+      setError("Failed to toggle driver status");
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -154,8 +204,14 @@ export default function DriverList() {
                     {driver.licenseDetails.licenseExpiryDate || "N/A"}
                   </TableCell>
                   <TableCell>
-                    <Badge className="bg-green-500 hover:bg-green-600 text-white">
-                      Active
+                    <Badge
+                      className={cn(
+                        driver.status === "active"
+                          ? "bg-green-500 hover:bg-green-600 text-white"
+                          : "bg-red-500 hover:bg-red-600 text-white",
+                      )}
+                    >
+                      {driver.status || "active"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -175,9 +231,15 @@ export default function DriverList() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => console.log("Toggle status")}
+                        onClick={() => handleToggleStatus(driver.id)}
+                        disabled={updatingId === driver.id}
                       >
-                        <Power className="h-4 w-4" />
+                        <Power
+                          className={cn(
+                            "h-4 w-4",
+                            updatingId === driver.id && "animate-spin",
+                          )}
+                        />
                       </Button>
                     </div>
                   </TableCell>
@@ -186,6 +248,29 @@ export default function DriverList() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-4 flex justify-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1 || loading}
+        >
+          Previous
+        </Button>
+        <span className="flex items-center px-4 text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages || loading}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

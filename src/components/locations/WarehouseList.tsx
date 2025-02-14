@@ -57,6 +57,9 @@ export default function WarehouseList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/locations/warehouses/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add Warehouse
+        </Button>
       </div>
 
       <div className="border rounded-lg">

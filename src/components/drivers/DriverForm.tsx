@@ -35,6 +35,7 @@ interface DriverFormData {
   };
   employmentDetails: {
     employeeId: string;
+    organizationId: string;
     joiningDate: string;
     salary: number;
     shiftStartTime: string;
@@ -83,6 +84,7 @@ const initialFormData: DriverFormData = {
   },
   employmentDetails: {
     employeeId: "",
+    organizationId: "",
     joiningDate: "",
     salary: 0,
     shiftStartTime: "",
@@ -109,6 +111,11 @@ const initialFormData: DriverFormData = {
   },
 };
 
+interface Organization {
+  id: string;
+  name: string;
+}
+
 export default function DriverForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -116,6 +123,20 @@ export default function DriverForm() {
   const [formData, setFormData] = useState<DriverFormData>(initialFormData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+
+  // Static organization data
+  const staticOrganizations = [
+    { id: "org1", name: "Swift Logistics Ltd" },
+    { id: "org2", name: "Express Transport Co" },
+    { id: "org3", name: "Global Freight Services" },
+    { id: "org4", name: "Metro Cargo Systems" },
+    { id: "org5", name: "City Logistics Inc" },
+  ];
+
+  useEffect(() => {
+    setOrganizations(staticOrganizations);
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -270,6 +291,61 @@ export default function DriverForm() {
                 />
               </div>
             </div>
+
+            <div className="col-span-2 space-y-4">
+              <h3 className="font-medium">Address</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Address Line 1</Label>
+                  <Input
+                    value={formData.address.addressLine1}
+                    onChange={(e) =>
+                      updateFormData("address", "addressLine1", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Address Line 2</Label>
+                  <Input
+                    value={formData.address.addressLine2}
+                    onChange={(e) =>
+                      updateFormData("address", "addressLine2", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Input
+                    value={formData.address.city}
+                    onChange={(e) =>
+                      updateFormData("address", "city", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>State</Label>
+                  <Input
+                    value={formData.address.state}
+                    onChange={(e) =>
+                      updateFormData("address", "state", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pincode</Label>
+                  <Input
+                    value={formData.address.pincode}
+                    onChange={(e) =>
+                      updateFormData("address", "pincode", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Country</Label>
+                  <Input value="India" disabled />
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="license" className="space-y-4">
@@ -289,12 +365,47 @@ export default function DriverForm() {
               </div>
               <div className="space-y-2">
                 <Label>License Type</Label>
-                <Input
+                <Select
                   value={formData.licenseDetails.type}
-                  onChange={(e) =>
-                    updateFormData("licenseDetails", "type", e.target.value)
+                  onValueChange={(value) =>
+                    updateFormData("licenseDetails", "type", value)
                   }
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select license type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LMV">
+                      LMV - Light Motor Vehicle (Cars, Jeeps, SUVs)
+                    </SelectItem>
+                    <SelectItem value="LMV-NT">
+                      LMV-NT - Light Motor Vehicle Non-Transport
+                    </SelectItem>
+                    <SelectItem value="LMV-TR">
+                      LMV-TR - Light Motor Vehicle Transport
+                    </SelectItem>
+                    <SelectItem value="MCWG">
+                      MCWG - Motorcycle with Gear
+                    </SelectItem>
+                    <SelectItem value="MCWOG">
+                      MCWOG - Motorcycle without Gear
+                    </SelectItem>
+                    <SelectItem value="HMV">
+                      HMV - Heavy Motor Vehicle
+                    </SelectItem>
+                    <SelectItem value="HGMV">
+                      HGMV - Heavy Goods Motor Vehicle
+                    </SelectItem>
+                    <SelectItem value="HPMV">
+                      HPMV - Heavy Passenger Motor Vehicle
+                    </SelectItem>
+                    <SelectItem value="TR">TR - Trailer</SelectItem>
+                    <SelectItem value="ROAD_ROLLER">Road Roller</SelectItem>
+                    <SelectItem value="OTHER">
+                      Other Specialized Vehicles
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Issuing Authority</Label>
@@ -328,6 +439,26 @@ export default function DriverForm() {
 
           <TabsContent value="employment" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Organization</Label>
+                <Select
+                  value={formData.employmentDetails.organizationId}
+                  onValueChange={(value) =>
+                    updateFormData("employmentDetails", "organizationId", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>Employee ID</Label>
                 <Input
@@ -434,51 +565,6 @@ export default function DriverForm() {
                       "phoneNumber",
                       e.target.value,
                     )
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Address Line 1</Label>
-                <Input
-                  value={formData.address.addressLine1}
-                  onChange={(e) =>
-                    updateFormData("address", "addressLine1", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Address Line 2</Label>
-                <Input
-                  value={formData.address.addressLine2}
-                  onChange={(e) =>
-                    updateFormData("address", "addressLine2", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>City</Label>
-                <Input
-                  value={formData.address.city}
-                  onChange={(e) =>
-                    updateFormData("address", "city", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>State</Label>
-                <Input
-                  value={formData.address.state}
-                  onChange={(e) =>
-                    updateFormData("address", "state", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Pincode</Label>
-                <Input
-                  value={formData.address.pincode}
-                  onChange={(e) =>
-                    updateFormData("address", "pincode", e.target.value)
                   }
                 />
               </div>

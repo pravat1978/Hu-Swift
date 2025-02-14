@@ -7,33 +7,25 @@ import { cn } from "@/lib/utils";
 import PageHeader from "./PageHeader";
 
 export default function DashboardLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Mobile sidebar backdrop */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:relative lg:inset-auto",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "shrink-0 transition-all duration-200 ease-in-out h-screen sticky top-0",
+          isSidebarCollapsed ? "w-16" : "w-56",
         )}
       >
-        <Sidebar />
+        <Sidebar
+          isCollapsed={isSidebarCollapsed}
+          onCollapse={setIsSidebarCollapsed}
+        />
       </div>
 
-      {/* Main content */}
-      <div
-        className="flex-1 flex flex-col min-w-0 transition-all duration-200 ease-in-out"
-        style={{ marginLeft: "1rem" }}
-      >
+      {/* Main content wrapper */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Mobile header */}
         <header className="sticky top-0 z-10 lg:hidden bg-white border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between">
@@ -52,15 +44,18 @@ export default function DashboardLayout() {
         </header>
 
         {/* Main scrollable area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white">
+        <div className="flex-1 overflow-auto">
           <PageHeader />
-          <div className="container mx-auto py-6">
-            <Outlet />
-          </div>
-        </main>
-        {/* Footer */}
-        <footer className="border-t border-gray-200 bg-white">
-          <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <main className="bg-white min-h-0">
+            <div className="p-6">
+              <Outlet />
+            </div>
+          </main>
+        </div>
+
+        {/* Footer - Static at bottom */}
+        <footer className="shrink-0 border-t border-gray-200 bg-white">
+          <div className="px-6 py-4 flex justify-between items-center">
             <div className="text-sm text-gray-500">
               © 2025 Hutech Solutions. All rights reserved.
             </div>

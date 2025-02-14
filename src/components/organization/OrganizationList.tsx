@@ -58,6 +58,9 @@ export default function OrganizationList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/organization/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add Organization
+        </Button>
       </div>
 
       <div className="border rounded-lg">

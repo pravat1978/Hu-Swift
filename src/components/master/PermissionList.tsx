@@ -64,6 +64,9 @@ export default function PermissionList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/master/permissions/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add Permission
+        </Button>
       </div>
 
       <div className="border rounded-lg">

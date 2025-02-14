@@ -91,15 +91,22 @@ const onboardingItems: NavItem[] = [
   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isCollapsed?: boolean;
+  onCollapse?: (collapsed: boolean) => void;
+}
+
+export default function Sidebar({
+  isCollapsed = false,
+  onCollapse,
+}: SidebarProps) {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div
       className={cn(
         "flex flex-col h-full bg-blue-900 border-r border-blue-800 transition-all duration-300",
-        isCollapsed ? "w-[80px]" : "w-[280px]",
+        isCollapsed ? "w-16" : "w-56",
       )}
     >
       <div className="p-6 flex justify-between items-center border-b border-blue-800">
@@ -114,7 +121,7 @@ export default function Sidebar() {
           variant="ghost"
           size="icon"
           className="text-white hover:bg-blue-800"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => onCollapse?.(!isCollapsed)}
         >
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -168,7 +175,6 @@ export default function Sidebar() {
                     <span className="text-sm font-semibold">Onboarding</span>
                   )}
                 </div>
-
               </AccordionTrigger>
               <AccordionContent className="px-1">
                 <div className="space-y-1 pt-1">

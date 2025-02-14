@@ -58,6 +58,9 @@ export default function FleetYardList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/locations/fleet-yards/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add Fleet Yard
+        </Button>
       </div>
 
       <div className="border rounded-lg">

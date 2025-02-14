@@ -70,6 +70,9 @@ export default function VehicleList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/vehicles/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add Vehicle
+        </Button>
       </div>
 
       <div className="border rounded-lg">

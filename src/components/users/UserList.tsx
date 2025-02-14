@@ -60,6 +60,9 @@ export default function UserList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => navigate("/users/new")}>
+          <Plus className="w-4 h-4 mr-2" /> Add User
+        </Button>
       </div>
 
       <div className="border rounded-lg">
