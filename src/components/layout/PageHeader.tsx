@@ -24,6 +24,9 @@ export default function PageHeader({ title, children }: PageHeaderProps) {
       permissions: "Permissions",
       roles: "Roles",
       users: "Users",
+      categories: "Categories",
+      products: "Products",
+      stock: "Stock",
     };
 
     // Check if we're on a "new" or "edit" page

@@ -1,21 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Power } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,49 +12,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 
 export default function OrganizationForm() {
-  const [activeTab, setActiveTab] = useState("basic");
-  const [showLocationForm, setShowLocationForm] = useState(false);
-  const [editingLocation, setEditingLocation] = useState(null);
-  const [locations, setLocations] = useState([
-    {
-      id: "1",
-      name: "Mumbai Fleet Yard",
-      code: "MUM001",
-      type: "fleet_yard",
-      contactPerson: "Rahul Shah",
-      status: "active",
-    },
-  ]);
-
-  const handleEditLocation = (location) => {
-    setEditingLocation(location);
-    setShowLocationForm(true);
-  };
-
-  const handleToggleLocationStatus = (locationId) => {
-    setLocations(
-      locations.map((location) =>
-        location.id === locationId
-          ? {
-              ...location,
-              status: location.status === "active" ? "inactive" : "active",
-            }
-          : location,
-      ),
-    );
-  };
-
-  const handleSaveLocation = () => {
-    // Handle saving location
-    setShowLocationForm(false);
-    setEditingLocation(null);
-  };
-
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("basic");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    regNumber: "",
+    type: "",
+    industry: "",
+    phone: "",
+    email: "",
+    website: "",
+    address: {
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      country: "India",
+    },
+    gstin: "",
+    pan: "",
+    incorporationDate: "",
+    cin: "",
+  });
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const payload = {
+        basicInfo: {
+          organizationName: formData.name,
+          companyRegistrationNumber: formData.regNumber,
+          type: formData.type,
+          industry: formData.industry,
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website,
+          uniqueId: `HS_OG_${Date.now()}`,
+          address: {
+            addressLine1: formData.address.addressLine1,
+            addressLine2: formData.address.addressLine2,
+            city: formData.address.city,
+            state: formData.address.state,
+            pincode: formData.address.pincode,
+            country: formData.address.country,
+          },
+        },
+        legalDetails: {
+          gstin: formData.gstin,
+          pan: formData.pan,
+          incorporationDate: formData.incorporationDate,
+          corporateIdentificationNumber: formData.cin,
+        },
+      };
+
+      const response = await fetch(
+        "https://apis.huswift.hutechweb.com/organizations/create",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to create organization");
+
+      navigate("/organization");
+    } catch (err) {
+      console.error("Error creating organization:", err);
+      setError("Failed to create organization. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -85,110 +110,165 @@ export default function OrganizationForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Organization Name</Label>
-                <Input placeholder="Enter organization name" />
+                <Input
+                  placeholder="Enter organization name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Company registration number</Label>
-                <Input placeholder="Enter company registration number" />
+                <Label>Company Registration Number</Label>
+                <Input
+                  placeholder="Enter company registration number"
+                  value={formData.regNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, regNumber: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, type: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="logistics">Logistics</SelectItem>
-                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                    <SelectItem value="retail">Retail</SelectItem>
+                    <SelectItem value="Private">Private</SelectItem>
+                    <SelectItem value="Public">Public</SelectItem>
+                    <SelectItem value="Government">Government</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Industry</Label>
-                <Input placeholder="Enter industry" />
+                <Input
+                  placeholder="Enter industry"
+                  value={formData.industry}
+                  onChange={(e) =>
+                    setFormData({ ...formData, industry: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
-                <Input placeholder="Enter phone number" />
+                <Input
+                  placeholder="Enter phone number"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input type="email" placeholder="Enter email" />
+                <Input
+                  type="email"
+                  placeholder="Enter email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Website</Label>
-                <Input placeholder="Enter website URL" />
+                <Input
+                  placeholder="Enter website URL"
+                  value={formData.website}
+                  onChange={(e) =>
+                    setFormData({ ...formData, website: e.target.value })
+                  }
+                />
               </div>
               <div className="col-span-2 space-y-4">
                 <h3 className="font-medium">Address</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Address Line 1</Label>
-                    <Input placeholder="Enter address line 1" />
+                    <Input
+                      placeholder="Enter address line 1"
+                      value={formData.address.addressLine1}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          address: {
+                            ...formData.address,
+                            addressLine1: e.target.value,
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Address Line 2</Label>
-                    <Input placeholder="Enter address line 2" />
+                    <Input
+                      placeholder="Enter address line 2"
+                      value={formData.address.addressLine2}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          address: {
+                            ...formData.address,
+                            addressLine2: e.target.value,
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>City</Label>
-                    <Input placeholder="Enter city" />
+                    <Input
+                      placeholder="Enter city"
+                      value={formData.address.city}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          address: {
+                            ...formData.address,
+                            city: e.target.value,
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>State</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AN">
-                          Andaman and Nicobar Islands
-                        </SelectItem>
-                        <SelectItem value="AP">Andhra Pradesh</SelectItem>
-                        <SelectItem value="AR">Arunachal Pradesh</SelectItem>
-                        <SelectItem value="AS">Assam</SelectItem>
-                        <SelectItem value="BR">Bihar</SelectItem>
-                        <SelectItem value="CH">Chandigarh</SelectItem>
-                        <SelectItem value="CT">Chhattisgarh</SelectItem>
-                        <SelectItem value="DN">
-                          Dadra and Nagar Haveli
-                        </SelectItem>
-                        <SelectItem value="DD">Daman and Diu</SelectItem>
-                        <SelectItem value="DL">Delhi</SelectItem>
-                        <SelectItem value="GA">Goa</SelectItem>
-                        <SelectItem value="GJ">Gujarat</SelectItem>
-                        <SelectItem value="HR">Haryana</SelectItem>
-                        <SelectItem value="HP">Himachal Pradesh</SelectItem>
-                        <SelectItem value="JK">Jammu and Kashmir</SelectItem>
-                        <SelectItem value="JH">Jharkhand</SelectItem>
-                        <SelectItem value="KA">Karnataka</SelectItem>
-                        <SelectItem value="KL">Kerala</SelectItem>
-                        <SelectItem value="LA">Ladakh</SelectItem>
-                        <SelectItem value="LD">Lakshadweep</SelectItem>
-                        <SelectItem value="MP">Madhya Pradesh</SelectItem>
-                        <SelectItem value="MH">Maharashtra</SelectItem>
-                        <SelectItem value="MN">Manipur</SelectItem>
-                        <SelectItem value="ML">Meghalaya</SelectItem>
-                        <SelectItem value="MZ">Mizoram</SelectItem>
-                        <SelectItem value="NL">Nagaland</SelectItem>
-                        <SelectItem value="OR">Odisha</SelectItem>
-                        <SelectItem value="PY">Puducherry</SelectItem>
-                        <SelectItem value="PB">Punjab</SelectItem>
-                        <SelectItem value="RJ">Rajasthan</SelectItem>
-                        <SelectItem value="SK">Sikkim</SelectItem>
-                        <SelectItem value="TN">Tamil Nadu</SelectItem>
-                        <SelectItem value="TG">Telangana</SelectItem>
-                        <SelectItem value="TR">Tripura</SelectItem>
-                        <SelectItem value="UP">Uttar Pradesh</SelectItem>
-                        <SelectItem value="UT">Uttarakhand</SelectItem>
-                        <SelectItem value="WB">West Bengal</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      placeholder="Enter state"
+                      value={formData.address.state}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          address: {
+                            ...formData.address,
+                            state: e.target.value,
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Pincode</Label>
-                    <Input placeholder="Enter pincode" />
+                    <Input
+                      placeholder="Enter pincode"
+                      value={formData.address.pincode}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          address: {
+                            ...formData.address,
+                            pincode: e.target.value,
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Country</Label>
@@ -203,195 +283,62 @@ export default function OrganizationForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>GSTIN</Label>
-                <Input placeholder="Enter GSTIN" />
+                <Input
+                  placeholder="Enter GSTIN"
+                  value={formData.gstin}
+                  onChange={(e) =>
+                    setFormData({ ...formData, gstin: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>PAN</Label>
-                <Input placeholder="Enter PAN" />
+                <Input
+                  placeholder="Enter PAN"
+                  value={formData.pan}
+                  onChange={(e) =>
+                    setFormData({ ...formData, pan: e.target.value })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Incorporation Date</Label>
-                <Input type="date" />
+                <Input
+                  type="date"
+                  value={formData.incorporationDate}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      incorporationDate: e.target.value,
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Corporate Identification Number</Label>
-                <Input placeholder="Enter CIN" />
+                <Input
+                  placeholder="Enter CIN"
+                  value={formData.cin}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cin: e.target.value })
+                  }
+                />
               </div>
             </div>
           </TabsContent>
-
-          <TabsContent value="locations" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Location List</h3>
-              <Button onClick={() => setShowLocationForm(true)} size="sm">
-                <Plus className="w-4 h-4 mr-2" /> Add Location
-              </Button>
-            </div>
-
-            <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Contact Person</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {locations.map((location) => (
-                    <TableRow key={location.id}>
-                      <TableCell>{location.name}</TableCell>
-                      <TableCell>{location.code}</TableCell>
-                      <TableCell>
-                        {location.type === "fleet_yard"
-                          ? "Fleet Yard"
-                          : "Warehouse"}
-                      </TableCell>
-                      <TableCell>{location.contactPerson}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            location.status === "active"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {location.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditLocation(location)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              handleToggleLocationStatus(location.id)
-                            }
-                          >
-                            <Power className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <Dialog open={showLocationForm} onOpenChange={setShowLocationForm}>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingLocation ? "Edit Location" : "Add New Location"}
-                  </DialogTitle>
-                </DialogHeader>
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                    <TabsTrigger value="contact">Contact Details</TabsTrigger>
-                    <TabsTrigger value="facilities">Facilities</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="basic" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Location Name</Label>
-                        <Input placeholder="Enter location name" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Location Code</Label>
-                        <Input placeholder="Enter location code" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Type</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select location type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="fleet_yard">
-                              Fleet Yard
-                            </SelectItem>
-                            <SelectItem value="warehouse">Warehouse</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Street Address</Label>
-                        <Input placeholder="Enter street address" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>City</Label>
-                        <Input placeholder="Enter city" />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="contact" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Contact Person Name</Label>
-                        <Input placeholder="Enter contact person name" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Phone</Label>
-                        <Input placeholder="Enter phone number" />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="facilities" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="parking" />
-                        <Label htmlFor="parking">Parking Available</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="maintenance" />
-                        <Label htmlFor="maintenance">
-                          Maintenance Facility
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="fuel" />
-                        <Label htmlFor="fuel">Fuel Station</Label>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowLocationForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSaveLocation}>
-                    {editingLocation ? "Update" : "Add"} Location
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </TabsContent>
         </Card>
       </Tabs>
+
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
+      )}
 
       <div className="flex justify-end space-x-4">
         <Button variant="outline" onClick={() => navigate("/organization")}>
           Cancel
         </Button>
-        <Button onClick={() => console.log("Save organization")}>
-          Save Organization
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? "Saving..." : "Save Organization"}
         </Button>
       </div>
     </div>

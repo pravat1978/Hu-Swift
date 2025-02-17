@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -16,33 +16,72 @@ import { cn } from "@/lib/utils";
 
 interface Organization {
   id: string;
-  name: string;
-  regNumber: string;
+  organizationName: string;
+  companyRegistrationNumber: string;
   type: string;
   industry: string;
   status: "active" | "inactive";
-  subscription: string;
 }
-
-const demoOrganizations: Organization[] = [
-  {
-    id: "HS_OG_001",
-    name: "Swift Logistics Ltd",
-    regNumber: "REG123456",
-    type: "Logistics",
-    industry: "Transportation",
-    status: "active",
-    subscription: "Premium",
-  },
-];
 
 export default function OrganizationList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const filteredOrganizations = demoOrganizations.filter((org) =>
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          "https://apis.huswift.hutechweb.com/organizations/all?page=1&size=5",
+        );
+        if (!response.ok) throw new Error("Failed to fetch organizations");
+        const result = await response.json();
+
+        // Check if 'data' exists and is an array
+        if (Array.isArray(result.data)) {
+          const transformedData = result.data.map((item) => {
+            const details = item.organizationDetails;
+            return {
+              id: details.id,
+              organizationName: details.organizationName,
+              companyRegistrationNumber: details.companyRegistrationNumber,
+              type: details.type,
+              industry: details.industry,
+              status: details.active ? "active" : "inactive",
+            };
+          });
+          setOrganizations(transformedData);
+        } else {
+          throw new Error("Unexpected response structure");
+        }
+      } catch (err) {
+        console.error("Error fetching organizations:", err);
+        setError("Failed to load organizations");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+
+  const filteredOrganizations = organizations.filter((org) =>
     Object.values(org).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+      value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
 
@@ -72,15 +111,14 @@ export default function OrganizationList() {
               <TableHead>Type</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Subscription</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrganizations.map((org) => (
               <TableRow key={org.id}>
-                <TableCell>{org.name}</TableCell>
-                <TableCell>{org.regNumber}</TableCell>
+                <TableCell>{org.organizationName}</TableCell>
+                <TableCell>{org.companyRegistrationNumber}</TableCell>
                 <TableCell>{org.type}</TableCell>
                 <TableCell>{org.industry}</TableCell>
                 <TableCell>
@@ -94,7 +132,6 @@ export default function OrganizationList() {
                     {org.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{org.subscription}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button

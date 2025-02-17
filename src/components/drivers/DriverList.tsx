@@ -18,7 +18,7 @@ interface Driver {
   id: string;
   personalDetails: {
     name: string;
-    dateOfBirth: string;
+    dateOfBirth: string | null;
     gender: string;
   };
   contactDetails: {
@@ -27,7 +27,7 @@ interface Driver {
   };
   licenseDetails: {
     licenseNumber: string;
-    licenseExpiryDate: string;
+    licenseExpiryDate: string | null;
     type: string;
     issuingAuthority: string;
   };
@@ -35,8 +35,7 @@ interface Driver {
     vehicleId: string;
     vehicleType: string;
   };
-  status: "active" | "inactive";
-  createdAt?: string;
+  status: string | null;
 }
 
 export default function DriverList() {
@@ -46,6 +45,7 @@ export default function DriverList() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -57,37 +57,21 @@ export default function DriverList() {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://apis.huswift.hutechweb.com/drivers/page/${page}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          mode: "cors",
-        },
+        "https://apis.huswift.hutechweb.com/drivers/?page=1&size=5",
       );
+
       if (!response.ok) {
         throw new Error("Failed to fetch drivers");
       }
       const data = await response.json();
 
-      // Always sort drivers by creation date (newest first)
-      const transformedDrivers: Driver[] = (data.drivers || []).sort(
-        (a: Driver, b: Driver) => {
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
-          return dateB - dateA;
-        },
-      );
-
-      setDrivers(transformedDrivers);
-      setTotalPages(data.totalPages || 8);
+      setDrivers(data.drivers || []);
+      setTotalPages(data.pagination["total-Pages"]);
+      setTotalRecords(data.pagination["total-Records"]);
       setError(null);
     } catch (err) {
-      setError("Failed to fetch drivers. Please try again later.");
       console.error("Error fetching drivers:", err);
+      setError("Failed to fetch drivers. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -100,12 +84,6 @@ export default function DriverList() {
         `https://apis.huswift.hutechweb.com/drivers/${driverId}/toggle-status`,
         {
           method: "PATCH",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          mode: "cors",
         },
       );
 
@@ -131,8 +109,8 @@ export default function DriverList() {
   };
 
   const filteredDrivers = drivers.filter((driver) =>
-    Object.values(driver).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+    Object.values(driver.personalDetails).some((value) =>
+      value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
 
@@ -211,7 +189,7 @@ export default function DriverList() {
                           : "bg-red-500 hover:bg-red-600 text-white",
                       )}
                     >
-                      {driver.status || "active"}
+                      {driver.status || "inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -261,7 +239,7 @@ export default function DriverList() {
           Previous
         </Button>
         <span className="flex items-center px-4 text-sm text-gray-600">
-          Page {currentPage} of {totalPages}
+          Page {currentPage} of {totalPages} ({totalRecords} total records)
         </span>
         <Button
           variant="outline"

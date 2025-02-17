@@ -6,14 +6,6 @@ import DataTable from "@/components/dashboard/DataTable";
 const Home = () => {
   return (
     <div className="w-full space-y-6 p-4 md:p-6">
-      {/* Welcome Section */}
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          Welcome to HuSwift
-        </h1>
-        <p className="text-gray-500 mt-2">Your fleet management dashboard</p>
-      </div>
-
       {/* Fleet Overview Section */}
       <FleetOverview />
 

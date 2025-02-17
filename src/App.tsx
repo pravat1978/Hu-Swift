@@ -18,6 +18,12 @@ import RoleList from "@/components/master/RoleList";
 import RoleForm from "@/components/master/RoleForm";
 import UserList from "@/components/users/UserList";
 import UserManagement from "@/components/users/UserManagement";
+import CategoryList from "@/components/inventory/CategoryList";
+import CategoryForm from "@/components/inventory/CategoryForm";
+import ProductList from "@/components/inventory/ProductList";
+import ProductForm from "@/components/inventory/ProductForm";
+import InventoryList from "@/components/inventory/InventoryList";
+import InventoryForm from "@/components/inventory/InventoryForm";
 import WarehouseForm from "@/components/locations/WarehouseForm";
 import FleetYardList from "@/components/locations/FleetYardList";
 import FleetYardForm from "@/components/locations/FleetYardForm";
@@ -88,6 +94,25 @@ function App() {
                 <Route index element={<UserList />} />
                 <Route path="new" element={<UserManagement />} />
                 <Route path=":id/edit" element={<UserManagement />} />
+              </Route>
+
+              {/* Inventory Routes */}
+              <Route path="inventory">
+                <Route path="categories">
+                  <Route index element={<CategoryList />} />
+                  <Route path="new" element={<CategoryForm />} />
+                  <Route path=":id/edit" element={<CategoryForm />} />
+                </Route>
+                <Route path="products">
+                  <Route index element={<ProductList />} />
+                  <Route path="new" element={<ProductForm />} />
+                  <Route path=":id/edit" element={<ProductForm />} />
+                </Route>
+                <Route path="stock">
+                  <Route index element={<InventoryList />} />
+                  <Route path="new" element={<InventoryForm />} />
+                  <Route path=":id/edit" element={<InventoryForm />} />
+                </Route>
               </Route>
 
               {/* Master Data Routes */}
