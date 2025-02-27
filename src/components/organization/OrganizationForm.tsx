@@ -45,6 +45,65 @@ export default function OrganizationForm() {
       setLoading(true);
       setError(null);
 
+      const url = id
+        ? `https://apis.huswift.hutechweb.com/organizations/${id}`
+        : "https://apis.huswift.hutechweb.com/organizations/create";
+
+      const response = await fetch(url, {
+        method: id ? "PUT" : "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        mode: "cors",
+        body: JSON.stringify({
+          basicInfo: {
+            organizationName: formData.name,
+            companyRegistrationNumber: formData.regNumber,
+            type: formData.type,
+            industry: formData.industry,
+            phone: formData.phone,
+            email: formData.email,
+            website: formData.website,
+            orgId: id,
+            active: true,
+            address: {
+              addressLine1: formData.address.addressLine1,
+              addressLine2: formData.address.addressLine2,
+              city: formData.address.city,
+              state: formData.address.state,
+              pincode: formData.address.pincode,
+              country: formData.address.country,
+            },
+          },
+          legalDetails: {
+            gstin: formData.gstin,
+            pan: formData.pan,
+            incorporationDate: formData.incorporationDate,
+            corporateIdentificationNumber: formData.cin,
+          },
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save organization");
+
+      const data = await response.json();
+      if (data.data?.[0]?.status === "SUCCESS") {
+        navigate("/organization");
+      } else {
+        throw new Error(data.message || "Failed to save organization");
+      }
+    } catch (error) {
+      console.error("Error saving organization:", error);
+      setError("Failed to save organization. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+    try {
+      setLoading(true);
+      setError(null);
+
       const payload = {
         basicInfo: {
           organizationName: formData.name,

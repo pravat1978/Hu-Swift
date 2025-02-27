@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import MultiSelect from "react-select";
 
 interface DriverFormData {
   personalDetails: {
@@ -124,19 +125,41 @@ export default function DriverForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-
-  // Static organization data
-  const staticOrganizations = [
-    { id: "org1", name: "Swift Logistics Ltd" },
-    { id: "org2", name: "Express Transport Co" },
-    { id: "org3", name: "Global Freight Services" },
-    { id: "org4", name: "Metro Cargo Systems" },
-    { id: "org5", name: "City Logistics Inc" },
-  ];
-
+  const [page, setPage] = useState(1);
+  const [vehicles, setVehicles] = useState([]);
   useEffect(() => {
-    setOrganizations(staticOrganizations);
+    fetchOrganizations();
   }, []);
+
+  const fetchOrganizations = async () => {
+    try {
+      const response = await fetch(
+        "https://apis.huswift.hutechweb.com/organizations/all?page=1&size=100&sort=desc",
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch organizations");
+
+      const data = await response.json();
+      if (Array.isArray(data.data)) {
+        const transformedData = data.data.map((item) => ({
+          id: item.organizationDetails.id,
+          name: item.organizationDetails.organizationName,
+        }));
+        setOrganizations(transformedData);
+      }
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
+      setError("Failed to fetch organizations");
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -149,10 +172,77 @@ export default function DriverForm() {
       setLoading(true);
       const response = await fetch(
         `https://apis.huswift.hutechweb.com/drivers/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
       );
+
       if (!response.ok) throw new Error("Failed to fetch driver");
       const data = await response.json();
-      setFormData(data);
+      console.log("Driver data:", data); // For debugging
+
+      // Transform API response to match form data structure
+      if (data.drivers) {
+        const driver = data?.drivers?.driver;
+        console.log("Driver:", driver); // For debugging
+        setFormData({
+          personalDetails: {
+            dateOfBirth: driver.personalDetails?.dateOfBirth || "",
+            gender: driver.personalDetails?.gender || "",
+            name: driver.personalDetails?.name || "",
+          },
+          contactDetails: {
+            mobileNumber: driver.contactDetails?.mobileNumber || "",
+            email: driver.contactDetails?.email || "",
+          },
+          licenseDetails: {
+            licenseNumber: driver.licenseDetails?.licenseNumber || "",
+            licenseExpiryDate: driver.licenseDetails?.licenseExpiryDate || "",
+            type: driver.licenseDetails?.type || "Commercial",
+            issuingAuthority:
+              driver.licenseDetails?.issuingAuthority ||
+              "Regional Transport Office",
+          },
+          vehicleAssigned: {
+            vehicleId: driver.vehicleAssigned?.vehicleId || "",
+            vehicleType: driver.vehicleAssigned?.vehicleType || "Truck",
+          },
+          employmentDetails: {
+            employeeId: driver.employmentDetails?.employeeId || "",
+            organizationId: driver.employmentDetails?.organizationId || "",
+            joiningDate: driver.employmentDetails?.joiningDate || "",
+            salary: driver.employmentDetails?.salary || 0,
+            shiftStartTime: driver.employmentDetails?.shiftStartTime || "",
+            shiftEndTime: driver.employmentDetails?.shiftEndTime || "",
+          },
+          emergencyContact: {
+            name: driver.emergencyContact?.name || "",
+            relation: driver.emergencyContact?.relation || "",
+            phoneNumber: driver.emergencyContact?.phoneNumber || "",
+          },
+          documentsUpload: {
+            license: driver.documentsUpload?.license || "",
+            aadhar: driver.documentsUpload?.aadhar || "",
+            pan: driver.documentsUpload?.pan || "",
+            policeVerification:
+              driver.documentsUpload?.policeVerification || "",
+          },
+          address: {
+            addressLine1: driver.address?.addressLine1 || "",
+            addressLine2: driver.address?.addressLine2 || "",
+            city: driver.address?.city || "",
+            state: driver.address?.state || "",
+            country: driver.address?.country || "India",
+            pincode: driver.address?.pincode || "",
+          },
+        });
+      }
     } catch (error) {
       console.error("Error fetching driver:", error);
       setError("Failed to fetch driver details");
@@ -170,20 +260,81 @@ export default function DriverForm() {
         ? `https://apis.huswift.hutechweb.com/drivers/${id}`
         : "https://apis.huswift.hutechweb.com/drivers/onboard";
 
-      const response = await fetch(url, {
-        method: id ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const payload = {
+        personalDetails: {
+          dateOfBirth: formData.personalDetails.dateOfBirth,
+          gender: formData.personalDetails.gender,
+          name: formData.personalDetails.name,
         },
-        body: JSON.stringify(formData),
+        contactDetails: {
+          mobileNumber: formData.contactDetails.mobileNumber,
+          email: formData.contactDetails.email,
+        },
+        licenseDetails: {
+          licenseNumber: formData.licenseDetails.licenseNumber,
+          licenseExpiryDate: formData.licenseDetails.licenseExpiryDate,
+          type: formData.licenseDetails.type,
+          issuingAuthority: formData.licenseDetails.issuingAuthority,
+        },
+        vehicleAssigned: {
+          vehicleId: formData.vehicleAssigned.vehicleId,
+          vehicleType: formData.vehicleAssigned.vehicleType,
+        },
+        employmentDetails: {
+          employeeId: formData.employmentDetails.employeeId,
+          organizationId: formData.employmentDetails.organizationId,
+          joiningDate: formData.employmentDetails.joiningDate,
+          salary: formData.employmentDetails.salary,
+          shiftStartTime: formData.employmentDetails.shiftStartTime,
+          shiftEndTime: formData.employmentDetails.shiftEndTime,
+        },
+        emergencyContact: {
+          name: formData.emergencyContact.name,
+          relation: formData.emergencyContact.relation,
+          phoneNumber: formData.emergencyContact.phoneNumber,
+        },
+        documentsUpload: {
+          license: formData.documentsUpload.license,
+          aadhar: formData.documentsUpload.aadhar,
+          pan: formData.documentsUpload.pan,
+          policeVerification: formData.documentsUpload.policeVerification,
+        },
+        address: {
+          addressLine1: formData.address.addressLine1,
+          addressLine2: formData.address.addressLine2,
+          city: formData.address.city,
+          state: formData.address.state,
+          country: formData.address.country,
+          pincode: formData.address.pincode,
+        },
+      };
+
+      const response = await fetch(url, {
+        method: id ? "PATCH" : "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        mode: "cors",
+        body: JSON.stringify(id ? payload : payload),
       });
 
-      if (!response.ok) throw new Error("Failed to save driver");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save driver");
+      }
 
-      navigate("/drivers");
+      const data = await response.json();
+      console.log("data:", data);
+      if (data?.data?.[0]?.code === "SUCCESS") {
+        navigate("/drivers");
+      } else {
+        throw new Error(data.message || "Failed to save driver");
+      }
     } catch (error) {
       console.error("Error saving driver:", error);
-      setError("Failed to save driver. Please try again.");
+      setError(error.message || "Failed to save driver. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -209,6 +360,30 @@ export default function DriverForm() {
     );
   }
 
+  // Fetch vehicles from API
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      if (!formData.employmentDetails?.organizationId) return;
+      try {
+        const response = await fetch(
+          `https://apis.huswift.hutechweb.com/vehicles/?page=${page}&limit=6`,
+        );
+        const data = await response.json();
+        setVehicles(data?.vehicles || []);
+        console.log("Fetched Vehicles:", data.vehicles);
+      } catch (error) {
+        console.error("Error fetching vehicles:", error);
+      }
+    };
+
+    fetchVehicles();
+  }, [formData.employmentDetails?.organizationId, page]);
+
+  // Log after vehicles state updates
+  useEffect(() => {
+    console.log("Updated Vehicles:", vehicles);
+  }, [vehicles]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {error && (
@@ -229,7 +404,7 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Full Name</Label>
                 <Input
-                  value={formData.personalDetails.name}
+                  value={formData.personalDetails?.name}
                   onChange={(e) =>
                     updateFormData("personalDetails", "name", e.target.value)
                   }
@@ -239,7 +414,7 @@ export default function DriverForm() {
                 <Label>Date of Birth</Label>
                 <Input
                   type="date"
-                  value={formData.personalDetails.dateOfBirth}
+                  value={formData.personalDetails?.dateOfBirth}
                   onChange={(e) =>
                     updateFormData(
                       "personalDetails",
@@ -252,7 +427,7 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Gender</Label>
                 <Select
-                  value={formData.personalDetails.gender}
+                  value={formData.personalDetails?.gender}
                   onValueChange={(value) =>
                     updateFormData("personalDetails", "gender", value)
                   }
@@ -270,7 +445,7 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input
-                  value={formData.contactDetails.mobileNumber}
+                  value={formData.contactDetails?.mobileNumber}
                   onChange={(e) =>
                     updateFormData(
                       "contactDetails",
@@ -284,7 +459,7 @@ export default function DriverForm() {
                 <Label>Email</Label>
                 <Input
                   type="email"
-                  value={formData.contactDetails.email}
+                  value={formData.contactDetails?.email}
                   onChange={(e) =>
                     updateFormData("contactDetails", "email", e.target.value)
                   }
@@ -298,7 +473,7 @@ export default function DriverForm() {
                 <div className="space-y-2">
                   <Label>Address Line 1</Label>
                   <Input
-                    value={formData.address.addressLine1}
+                    value={formData.address?.addressLine1}
                     onChange={(e) =>
                       updateFormData("address", "addressLine1", e.target.value)
                     }
@@ -307,7 +482,7 @@ export default function DriverForm() {
                 <div className="space-y-2">
                   <Label>Address Line 2</Label>
                   <Input
-                    value={formData.address.addressLine2}
+                    value={formData.address?.addressLine2}
                     onChange={(e) =>
                       updateFormData("address", "addressLine2", e.target.value)
                     }
@@ -316,7 +491,7 @@ export default function DriverForm() {
                 <div className="space-y-2">
                   <Label>City</Label>
                   <Input
-                    value={formData.address.city}
+                    value={formData.address?.city}
                     onChange={(e) =>
                       updateFormData("address", "city", e.target.value)
                     }
@@ -325,7 +500,7 @@ export default function DriverForm() {
                 <div className="space-y-2">
                   <Label>State</Label>
                   <Input
-                    value={formData.address.state}
+                    value={formData.address?.state}
                     onChange={(e) =>
                       updateFormData("address", "state", e.target.value)
                     }
@@ -334,15 +509,11 @@ export default function DriverForm() {
                 <div className="space-y-2">
                   <Label>Pincode</Label>
                   <Input
-                    value={formData.address.pincode}
+                    value={formData.address?.pincode}
                     onChange={(e) =>
                       updateFormData("address", "pincode", e.target.value)
                     }
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Country</Label>
-                  <Input value="India" disabled />
                 </div>
               </div>
             </div>
@@ -353,7 +524,7 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>License Number</Label>
                 <Input
-                  value={formData.licenseDetails.licenseNumber}
+                  value={formData.licenseDetails?.licenseNumber}
                   onChange={(e) =>
                     updateFormData(
                       "licenseDetails",
@@ -364,9 +535,23 @@ export default function DriverForm() {
                 />
               </div>
               <div className="space-y-2">
+                <Label>License Expiry Date</Label>
+                <Input
+                  type="date"
+                  value={formData.licenseDetails?.licenseExpiryDate}
+                  onChange={(e) =>
+                    updateFormData(
+                      "licenseDetails",
+                      "licenseExpiryDate",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
                 <Label>License Type</Label>
                 <Select
-                  value={formData.licenseDetails.type}
+                  value={formData.licenseDetails?.type}
                   onValueChange={(value) =>
                     updateFormData("licenseDetails", "type", value)
                   }
@@ -375,34 +560,9 @@ export default function DriverForm() {
                     <SelectValue placeholder="Select license type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="LMV">
-                      LMV - Light Motor Vehicle (Cars, Jeeps, SUVs)
-                    </SelectItem>
-                    <SelectItem value="LMV-NT">
-                      LMV-NT - Light Motor Vehicle Non-Transport
-                    </SelectItem>
-                    <SelectItem value="LMV-TR">
-                      LMV-TR - Light Motor Vehicle Transport
-                    </SelectItem>
-                    <SelectItem value="MCWG">
-                      MCWG - Motorcycle with Gear
-                    </SelectItem>
-                    <SelectItem value="MCWOG">
-                      MCWOG - Motorcycle without Gear
-                    </SelectItem>
-                    <SelectItem value="HMV">
-                      HMV - Heavy Motor Vehicle
-                    </SelectItem>
-                    <SelectItem value="HGMV">
-                      HGMV - Heavy Goods Motor Vehicle
-                    </SelectItem>
-                    <SelectItem value="HPMV">
-                      HPMV - Heavy Passenger Motor Vehicle
-                    </SelectItem>
-                    <SelectItem value="TR">TR - Trailer</SelectItem>
-                    <SelectItem value="ROAD_ROLLER">Road Roller</SelectItem>
-                    <SelectItem value="OTHER">
-                      Other Specialized Vehicles
+                    <SelectItem value="Commercial">Commercial</SelectItem>
+                    <SelectItem value="Non-Commercial">
+                      Non-Commercial
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -410,25 +570,11 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Issuing Authority</Label>
                 <Input
-                  value={formData.licenseDetails.issuingAuthority}
+                  value={formData.licenseDetails?.issuingAuthority}
                   onChange={(e) =>
                     updateFormData(
                       "licenseDetails",
                       "issuingAuthority",
-                      e.target.value,
-                    )
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Expiry Date</Label>
-                <Input
-                  type="date"
-                  value={formData.licenseDetails.licenseExpiryDate}
-                  onChange={(e) =>
-                    updateFormData(
-                      "licenseDetails",
-                      "licenseExpiryDate",
                       e.target.value,
                     )
                   }
@@ -440,9 +586,22 @@ export default function DriverForm() {
           <TabsContent value="employment" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label>Employee ID</Label>
+                <Input
+                  value={formData.employmentDetails?.employeeId}
+                  onChange={(e) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "employeeId",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
                 <Label>Organization</Label>
                 <Select
-                  value={formData.employmentDetails.organizationId}
+                  value={formData.employmentDetails?.organizationId}
                   onValueChange={(value) =>
                     updateFormData("employmentDetails", "organizationId", value)
                   }
@@ -460,23 +619,10 @@ export default function DriverForm() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Employee ID</Label>
-                <Input
-                  value={formData.employmentDetails.employeeId}
-                  onChange={(e) =>
-                    updateFormData(
-                      "employmentDetails",
-                      "employeeId",
-                      e.target.value,
-                    )
-                  }
-                />
-              </div>
-              <div className="space-y-2">
                 <Label>Joining Date</Label>
                 <Input
                   type="date"
-                  value={formData.employmentDetails.joiningDate}
+                  value={formData.employmentDetails?.joiningDate}
                   onChange={(e) =>
                     updateFormData(
                       "employmentDetails",
@@ -490,12 +636,12 @@ export default function DriverForm() {
                 <Label>Salary</Label>
                 <Input
                   type="number"
-                  value={formData.employmentDetails.salary}
+                  value={formData.employmentDetails?.salary}
                   onChange={(e) =>
                     updateFormData(
                       "employmentDetails",
                       "salary",
-                      parseInt(e.target.value),
+                      parseFloat(e.target.value),
                     )
                   }
                 />
@@ -504,7 +650,7 @@ export default function DriverForm() {
                 <Label>Shift Start Time</Label>
                 <Input
                   type="time"
-                  value={formData.employmentDetails.shiftStartTime}
+                  value={formData.employmentDetails?.shiftStartTime}
                   onChange={(e) =>
                     updateFormData(
                       "employmentDetails",
@@ -518,7 +664,7 @@ export default function DriverForm() {
                 <Label>Shift End Time</Label>
                 <Input
                   type="time"
-                  value={formData.employmentDetails.shiftEndTime}
+                  value={formData.employmentDetails?.shiftEndTime}
                   onChange={(e) =>
                     updateFormData(
                       "employmentDetails",
@@ -528,59 +674,145 @@ export default function DriverForm() {
                   }
                 />
               </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Vehicles</Label>
+                <MultiSelect
+                  options={vehicles.map((vehicle) => ({
+                    value: vehicle.basicInfo.vehicleNumber, // Ensure this is unique
+                    label: vehicle.basicInfo.vehicleNumber,
+                  }))}
+                  value={(formData.employmentDetails?.vehicles || []).map(
+                    (vehicleNumber: string) => {
+                      const matchedVehicle = vehicles.find(
+                        (v) => v.basicInfo.vehicleNumber === vehicleNumber,
+                      );
+                      return {
+                        value: vehicleNumber,
+                        label: matchedVehicle
+                          ? matchedVehicle.basicInfo.vehicleNumber
+                          : "Unknown",
+                      };
+                    },
+                  )}
+                  onChange={(selected) =>
+                    updateFormData(
+                      "employmentDetails",
+                      "vehicles",
+                      selected.map((option: any) => option.value),
+                    )
+                  }
+                  isLoading={loading}
+                  placeholder="Select vehicles"
+                  isMulti
+                />{" "}
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="additional" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Emergency Contact Name</Label>
-                <Input
-                  value={formData.emergencyContact.name}
-                  onChange={(e) =>
-                    updateFormData("emergencyContact", "name", e.target.value)
-                  }
-                />
+              <div className="space-y-4">
+                <h3 className="font-medium">Emergency Contact</h3>
+                <div className="space-y-2">
+                  <Label>Contact Name</Label>
+                  <Input
+                    value={formData.emergencyContact?.name}
+                    onChange={(e) =>
+                      updateFormData("emergencyContact", "name", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Relationship</Label>
+                  <Input
+                    value={formData.emergencyContact?.relation}
+                    onChange={(e) =>
+                      updateFormData(
+                        "emergencyContact",
+                        "relation",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Contact Phone</Label>
+                  <Input
+                    value={formData.emergencyContact?.phoneNumber}
+                    onChange={(e) =>
+                      updateFormData(
+                        "emergencyContact",
+                        "phoneNumber",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Relation</Label>
-                <Input
-                  value={formData.emergencyContact.relation}
-                  onChange={(e) =>
-                    updateFormData(
-                      "emergencyContact",
-                      "relation",
-                      e.target.value,
-                    )
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Emergency Contact Phone</Label>
-                <Input
-                  value={formData.emergencyContact.phoneNumber}
-                  onChange={(e) =>
-                    updateFormData(
-                      "emergencyContact",
-                      "phoneNumber",
-                      e.target.value,
-                    )
-                  }
-                />
+
+              <div className="space-y-4">
+                <h3 className="font-medium">Document Upload</h3>
+                <div className="space-y-2">
+                  <Label>License Document</Label>
+                  <Input
+                    value={formData.documentsUpload?.license}
+                    onChange={(e) =>
+                      updateFormData(
+                        "documentsUpload",
+                        "license",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Aadhar Card</Label>
+                  <Input
+                    value={formData.documentsUpload?.aadhar}
+                    onChange={(e) =>
+                      updateFormData(
+                        "documentsUpload",
+                        "aadhar",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>PAN Card</Label>
+                  <Input
+                    value={formData.documentsUpload?.pan}
+                    onChange={(e) =>
+                      updateFormData("documentsUpload", "pan", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Police Verification</Label>
+                  <Input
+                    value={formData.documentsUpload?.policeVerification}
+                    onChange={(e) =>
+                      updateFormData(
+                        "documentsUpload",
+                        "policeVerification",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
               </div>
             </div>
           </TabsContent>
+
+          <Button
+            onClick={handleSubmit}
+            className="w-full mt-6"
+            disabled={loading}
+          >
+            {id ? "Update Driver" : "Add Driver"}
+          </Button>
         </Card>
       </Tabs>
-
-      <div className="flex justify-end space-x-4">
-        <Button variant="outline" onClick={() => navigate("/drivers")}>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} disabled={loading}>
-          {id ? "Update" : "Save"} Driver
-        </Button>
-      </div>
     </div>
   );
 }

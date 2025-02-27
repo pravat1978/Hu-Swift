@@ -82,6 +82,13 @@ function App() {
                 <Route path=":id/edit" element={<DriverForm />} />
               </Route>
 
+              {/* Organizations */}
+              <Route path="organization">
+                <Route index element={<OrganizationList />} />
+                <Route path="new" element={<OrganizationForm />} />
+                <Route path=":id/edit" element={<OrganizationForm />} />
+              </Route>
+
               {/* Vehicles */}
               <Route path="vehicles">
                 <Route index element={<VehicleList />} />

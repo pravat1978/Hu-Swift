@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -15,18 +14,101 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 
-interface WarehouseFormProps {
-  id?: string;
-}
-
-export default function WarehouseForm({
-  id = "HS_WH_001",
-}: WarehouseFormProps) {
-  const [activeTab, setActiveTab] = useState("basic");
+export default function WarehouseForm() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("basic");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    basicInfo: {
+      status: true,
+      warehouseName: "",
+      warehouseCode: "",
+      address: {
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        pincode: "",
+        country: "India",
+      },
+      geoLocation: {
+        latitude: 0,
+        longitude: 0,
+      },
+      phoneNumber: "",
+      emailAddress: "",
+      website: "",
+    },
+    contactDetails: {
+      primaryContactName: "",
+      primaryContactPhone: "",
+      primaryContactEmail: "",
+      secondaryContactName: "",
+      secondaryContactPhone: "",
+      secondaryContactEmail: "",
+    },
+    storageCapacity: {
+      warehouseType: "Cold Storage",
+      totalArea: 0,
+      numberOfStorageSections: 0,
+      maxCapacityPallets: 0,
+      storageTypesSupported: [] as string[],
+      currentUtilizationPercentage: 0,
+      allowedLoadPerRackKg: 0,
+      temperatureControlAvailable: false,
+      minTemperature: 0,
+      maxTemperature: 0,
+    },
+    operations: {
+      weekDayHours: "",
+      weekendOrHolidayHours: "",
+      wareHouseManagerName: "",
+      managerContact: "",
+    },
+  });
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        "https://apis.huswift.hutechweb.com/warehouses/onboard",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+          body: JSON.stringify(formData),
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to save warehouse");
+
+      const data = await response.json();
+      if (data.data?.code === "SUCCESS") {
+        navigate("/locations/warehouses");
+      } else {
+        throw new Error(data.message || "Failed to save warehouse");
+      }
+    } catch (error) {
+      console.error("Error saving warehouse:", error);
+      setError("Failed to save warehouse. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -39,111 +121,173 @@ export default function WarehouseForm({
           <TabsContent value="basic" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warehouse ID</Label>
-                <Input value={id} disabled />
-              </div>
-              <div className="space-y-2">
                 <Label>Warehouse Name</Label>
-                <Input placeholder="Enter warehouse name" />
+                <Input
+                  placeholder="Enter warehouse name"
+                  value={formData.basicInfo.warehouseName}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        warehouseName: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Warehouse Code</Label>
-                <Input placeholder="Enter warehouse code" />
+                <Input
+                  placeholder="Enter warehouse code"
+                  value={formData.basicInfo.warehouseCode}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        warehouseCode: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
+
+              {/* Address Fields */}
               <div className="col-span-2 space-y-4">
                 <h3 className="font-medium">Address</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Address Line 1</Label>
-                    <Input placeholder="Enter address line 1" />
+                    <Input
+                      placeholder="Enter address line 1"
+                      value={formData.basicInfo.address.addressLine1}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          basicInfo: {
+                            ...formData.basicInfo,
+                            address: {
+                              ...formData.basicInfo.address,
+                              addressLine1: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Address Line 2</Label>
-                    <Input placeholder="Enter address line 2" />
+                    <Input
+                      placeholder="Enter address line 2"
+                      value={formData.basicInfo.address.addressLine2}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          basicInfo: {
+                            ...formData.basicInfo,
+                            address: {
+                              ...formData.basicInfo.address,
+                              addressLine2: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>City</Label>
-                    <Input placeholder="Enter city" />
+                    <Input
+                      placeholder="Enter city"
+                      value={formData.basicInfo.address.city}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          basicInfo: {
+                            ...formData.basicInfo,
+                            address: {
+                              ...formData.basicInfo.address,
+                              city: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>State</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AN">
-                          Andaman and Nicobar Islands
-                        </SelectItem>
-                        <SelectItem value="AP">Andhra Pradesh</SelectItem>
-                        <SelectItem value="AR">Arunachal Pradesh</SelectItem>
-                        <SelectItem value="AS">Assam</SelectItem>
-                        <SelectItem value="BR">Bihar</SelectItem>
-                        <SelectItem value="CH">Chandigarh</SelectItem>
-                        <SelectItem value="CT">Chhattisgarh</SelectItem>
-                        <SelectItem value="DN">
-                          Dadra and Nagar Haveli
-                        </SelectItem>
-                        <SelectItem value="DD">Daman and Diu</SelectItem>
-                        <SelectItem value="DL">Delhi</SelectItem>
-                        <SelectItem value="GA">Goa</SelectItem>
-                        <SelectItem value="GJ">Gujarat</SelectItem>
-                        <SelectItem value="HR">Haryana</SelectItem>
-                        <SelectItem value="HP">Himachal Pradesh</SelectItem>
-                        <SelectItem value="JK">Jammu and Kashmir</SelectItem>
-                        <SelectItem value="JH">Jharkhand</SelectItem>
-                        <SelectItem value="KA">Karnataka</SelectItem>
-                        <SelectItem value="KL">Kerala</SelectItem>
-                        <SelectItem value="LA">Ladakh</SelectItem>
-                        <SelectItem value="LD">Lakshadweep</SelectItem>
-                        <SelectItem value="MP">Madhya Pradesh</SelectItem>
-                        <SelectItem value="MH">Maharashtra</SelectItem>
-                        <SelectItem value="MN">Manipur</SelectItem>
-                        <SelectItem value="ML">Meghalaya</SelectItem>
-                        <SelectItem value="MZ">Mizoram</SelectItem>
-                        <SelectItem value="NL">Nagaland</SelectItem>
-                        <SelectItem value="OR">Odisha</SelectItem>
-                        <SelectItem value="PY">Puducherry</SelectItem>
-                        <SelectItem value="PB">Punjab</SelectItem>
-                        <SelectItem value="RJ">Rajasthan</SelectItem>
-                        <SelectItem value="SK">Sikkim</SelectItem>
-                        <SelectItem value="TN">Tamil Nadu</SelectItem>
-                        <SelectItem value="TG">Telangana</SelectItem>
-                        <SelectItem value="TR">Tripura</SelectItem>
-                        <SelectItem value="UP">Uttar Pradesh</SelectItem>
-                        <SelectItem value="UT">Uttarakhand</SelectItem>
-                        <SelectItem value="WB">West Bengal</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      placeholder="Enter state"
+                      value={formData.basicInfo.address.state}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          basicInfo: {
+                            ...formData.basicInfo,
+                            address: {
+                              ...formData.basicInfo.address,
+                              state: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Pincode</Label>
-                    <Input placeholder="Enter pincode" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Country</Label>
-                    <Input value="India" disabled />
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label>Geolocation</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input placeholder="Latitude" />
-                      <Input placeholder="Longitude" />
-                    </div>
+                    <Input
+                      placeholder="Enter pincode"
+                      value={formData.basicInfo.address.pincode}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          basicInfo: {
+                            ...formData.basicInfo,
+                            address: {
+                              ...formData.basicInfo.address,
+                              pincode: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                    />
                   </div>
                 </div>
               </div>
+
+              {/* Contact Information */}
               <div className="space-y-2">
                 <Label>Phone Number</Label>
-                <Input placeholder="Enter phone number" />
+                <Input
+                  placeholder="Enter phone number"
+                  value={formData.basicInfo.phoneNumber}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        phoneNumber: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Email Address</Label>
-                <Input type="email" placeholder="Enter email address" />
-              </div>
-              <div className="space-y-2">
-                <Label>Website</Label>
-                <Input placeholder="Enter website (optional)" />
+                <Input
+                  type="email"
+                  placeholder="Enter email address"
+                  value={formData.basicInfo.emailAddress}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        emailAddress: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
             </div>
           </TabsContent>
@@ -152,165 +296,120 @@ export default function WarehouseForm({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Primary Contact Name</Label>
-                <Input placeholder="Enter primary contact name" />
+                <Input
+                  placeholder="Enter primary contact name"
+                  value={formData.contactDetails.primaryContactName}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      contactDetails: {
+                        ...formData.contactDetails,
+                        primaryContactName: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Primary Contact Phone</Label>
-                <Input placeholder="Enter primary contact phone" />
-              </div>
-              <div className="space-y-2">
-                <Label>Primary Contact Email</Label>
-                <Input type="email" placeholder="Enter primary contact email" />
-              </div>
-              <div className="space-y-2">
-                <Label>Secondary Contact Name</Label>
-                <Input placeholder="Enter secondary contact name" />
-              </div>
-              <div className="space-y-2">
-                <Label>Secondary Contact Phone</Label>
-                <Input placeholder="Enter secondary contact phone" />
-              </div>
-              <div className="space-y-2">
-                <Label>Secondary Contact Email</Label>
                 <Input
-                  type="email"
-                  placeholder="Enter secondary contact email"
+                  placeholder="Enter primary contact phone"
+                  value={formData.contactDetails.primaryContactPhone}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      contactDetails: {
+                        ...formData.contactDetails,
+                        primaryContactPhone: e.target.value,
+                      },
+                    })
+                  }
                 />
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="storage" className="space-y-4">
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Warehouse Type</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select warehouse type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="owned">Owned</SelectItem>
-                      <SelectItem value="leased">Leased</SelectItem>
-                      <SelectItem value="3pl">
-                        Third-Party Logistics (3PL)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Total Area (sq. meters)</Label>
-                  <Input type="number" placeholder="Enter total area" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Number of Storage Sections</Label>
-                  <Input type="number" placeholder="Enter number of sections" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Maximum Capacity (Pallets)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Enter maximum pallet capacity"
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warehouse Type</Label>
+                <Select
+                  value={formData.storageCapacity.warehouseType}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      storageCapacity: {
+                        ...formData.storageCapacity,
+                        warehouseType: value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select warehouse type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cold Storage">Cold Storage</SelectItem>
+                    <SelectItem value="Dry Storage">Dry Storage</SelectItem>
+                    <SelectItem value="Hazmat Storage">
+                      Hazmat Storage
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              <div className="space-y-4">
-                <Label>Storage Types Supported</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="pallet-racking" />
-                    <Label htmlFor="pallet-racking">Pallet Racking</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="bin-storage" />
-                    <Label htmlFor="bin-storage">Bin Storage</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="bulk-storage" />
-                    <Label htmlFor="bulk-storage">Bulk Storage</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="cold-storage" />
-                    <Label htmlFor="cold-storage">Cold Storage</Label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Current Utilization (%)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Enter current utilization"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Allowed Load Per Rack (Kg)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Enter maximum load per rack"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="temperature-control" />
-                  <Label htmlFor="temperature-control">
-                    Temperature Control Available
-                  </Label>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Minimum Temperature (°C)</Label>
-                    <Input
-                      type="number"
-                      placeholder="Enter minimum temperature"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Maximum Temperature (°C)</Label>
-                    <Input
-                      type="number"
-                      placeholder="Enter maximum temperature"
-                    />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label>Total Area (sq. meters)</Label>
+                <Input
+                  type="number"
+                  placeholder="Enter total area"
+                  value={formData.storageCapacity.totalArea}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      storageCapacity: {
+                        ...formData.storageCapacity,
+                        totalArea: parseFloat(e.target.value),
+                      },
+                    })
+                  }
+                />
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="operations" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <h3 className="font-medium mb-4">Operating Hours</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Weekday Hours</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input type="time" placeholder="Start time" />
-                      <Input type="time" placeholder="End time" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Weekend/Holiday Hours</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input type="time" placeholder="Start time" />
-                      <Input type="time" placeholder="End time" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warehouse Manager Name</Label>
-                <Input placeholder="Enter manager name" />
+                <Label>Weekday Hours</Label>
+                <Input
+                  type="time"
+                  value={formData.operations.weekDayHours}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      operations: {
+                        ...formData.operations,
+                        weekDayHours: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>Manager Contact</Label>
-                <Input placeholder="Enter manager contact" />
+                <Label>Weekend/Holiday Hours</Label>
+                <Input
+                  type="time"
+                  value={formData.operations.weekendOrHolidayHours}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      operations: {
+                        ...formData.operations,
+                        weekendOrHolidayHours: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
             </div>
           </TabsContent>
@@ -324,8 +423,8 @@ export default function WarehouseForm({
         >
           Cancel
         </Button>
-        <Button onClick={() => console.log("Save warehouse")}>
-          Save Warehouse
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? "Saving..." : "Save Warehouse"}
         </Button>
       </div>
     </div>

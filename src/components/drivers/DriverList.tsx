@@ -57,17 +57,57 @@ export default function DriverList() {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://apis.huswift.hutechweb.com/drivers/?page=1&size=5",
+        `https://apis.huswift.hutechweb.com/drivers/?page=${page}&size=5`,
       );
+
+      if (response.status === 404) {
+        // If the status is 404, set empty drivers
+        setDrivers([]);
+        setTotalPages(1);
+        setTotalRecords(0);
+        setError(null);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Failed to fetch drivers");
       }
+
       const data = await response.json();
 
-      setDrivers(data.drivers || []);
-      setTotalPages(data.pagination["total-Pages"]);
-      setTotalRecords(data.pagination["total-Records"]);
+      // Handle empty data gracefully
+      if (Array.isArray(data.drivers)) {
+        // Transform the data to match the interface
+        const transformedData = data.drivers.map((driver) => ({
+          id: driver.id,
+          personalDetails: {
+            name: driver.personalDetails?.name || "N/A",
+            dateOfBirth: driver.personalDetails?.dateOfBirth || null,
+            gender: driver.personalDetails?.gender || "N/A",
+          },
+          contactDetails: {
+            mobileNumber: driver.contactDetails?.mobileNumber || "N/A",
+            email: driver.contactDetails?.email || "N/A",
+          },
+          licenseDetails: {
+            licenseNumber: driver.licenseDetails?.licenseNumber || "N/A",
+            licenseExpiryDate: driver.licenseDetails?.licenseExpiryDate || null,
+            type: driver.licenseDetails?.type || "N/A",
+            issuingAuthority: driver.licenseDetails?.issuingAuthority || "N/A",
+          },
+          vehicleAssigned: {
+            vehicleId: driver.vehicleAssigned?.vehicleId || "",
+            vehicleType: driver.vehicleAssigned?.vehicleType || "",
+          },
+          status: driver.status || null,
+        }));
+
+        setDrivers(transformedData);
+        setTotalPages(data.pagination?.["total-Pages"] || 1);
+        setTotalRecords(data.pagination?.["total-Records"] || 0);
+      } else {
+        throw new Error("Unexpected response structure");
+      }
       setError(null);
     } catch (err) {
       console.error("Error fetching drivers:", err);
@@ -114,12 +154,6 @@ export default function DriverList() {
     ),
   );
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">Loading...</div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex justify-center items-center h-64 text-red-500">
@@ -159,13 +193,23 @@ export default function DriverList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDrivers.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="flex justify-center items-center">
+                    Loading...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredDrivers.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
                   className="text-center py-8 text-gray-500"
                 >
-                  No drivers found
+                  {searchTerm
+                    ? "No drivers found matching your search"
+                    : "No drivers added yet"}
                 </TableCell>
               </TableRow>
             ) : (
@@ -184,12 +228,12 @@ export default function DriverList() {
                   <TableCell>
                     <Badge
                       className={cn(
-                        driver.status === "active"
+                        driver.status?.toLowerCase() === "active"
                           ? "bg-green-500 hover:bg-green-600 text-white"
                           : "bg-red-500 hover:bg-red-600 text-white",
                       )}
                     >
-                      {driver.status || "inactive"}
+                      {driver.status?.toUpperCase() || "INACTIVE"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -211,6 +255,11 @@ export default function DriverList() {
                         size="icon"
                         onClick={() => handleToggleStatus(driver.id)}
                         disabled={updatingId === driver.id}
+                        className={cn(
+                          driver.status === "ACTIVE"
+                            ? "bg-green-500 hover:bg-green-600 text-white"
+                            : "bg-red-500 hover:bg-red-600 text-white",
+                        )}
                       >
                         <Power
                           className={cn(

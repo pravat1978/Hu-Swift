@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,343 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import VehicleMaintenance from "./VehicleMaintenance";
-
+interface VehicleFormData {
+  assignedDriver: {
+    driverId: string;
+    name: string;
+  };
+  basicInfo: {
+    vehicleNumber: string;
+    type: string;
+    make: string;
+    model: string;
+    yearOfManufacturing: string;
+  };
+  capacity: {
+    maxLoad: string;
+    seatingCapacity: string;
+  };
+  documentUpload: {
+    rc: string;
+    insurance: string;
+    permit: string;
+    pollutionCertificate: string;
+  };
+  fuelDetails: {
+    fuelType: string;
+    mileage: string;
+    tankCapacity: string;
+  };
+  gpsTracking: {
+    deviceId: string;
+    installed: false;
+  };
+  insuranceDetails: {
+    provider: string;
+    policyNumber: string;
+    expiryDate: string;
+  };
+  maintenanceSchedule: {
+    lastServiceDate: string;
+    nextDueDate: string;
+    serviceCenter: string;
+  };
+  ownerShipType: {
+    ownerShipType: string;
+  };
+  permitDetails: {
+    permit: string;
+    validity: string;
+    routRestriction: string;
+  };
+  registrationDetails: {
+    rcNumber: string;
+    state: string;
+    expiryDate: string;
+  };
+}
+const initialFormData: VehicleFormData = {
+  assignedDriver: {
+    driverId: "",
+    name: "",
+  },
+  basicInfo: {
+    vehicleNumber: "",
+    type: "",
+    make: "",
+    model: "",
+    yearOfManufacturing: "",
+  },
+  capacity: {
+    maxLoad: "",
+    seatingCapacity: "",
+  },
+  documentUpload: {
+    rc: "",
+    insurance: "",
+    permit: "",
+    pollutionCertificate: "",
+  },
+  fuelDetails: {
+    fuelType: "",
+    mileage: "",
+    tankCapacity: "",
+  },
+  gpsTracking: {
+    deviceId: "",
+    installed: false,
+  },
+  insuranceDetails: {
+    provider: "",
+    policyNumber: "",
+    expiryDate: "",
+  },
+  maintenanceSchedule: {
+    lastServiceDate: "",
+    nextDueDate: "",
+    serviceCenter: "",
+  },
+  ownerShipType: {
+    ownerShipType: "",
+  },
+  permitDetails: {
+    permit: "",
+    validity: "",
+    routRestriction: "",
+  },
+  registrationDetails: {
+    rcNumber: "",
+    state: "",
+    expiryDate: "",
+  },
+};
 export default function VehicleForm() {
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState("basic");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [formData, setFormData] = useState<VehicleFormData>(initialFormData);
+
+  useEffect(() => {
+    if (id) {
+      fetchVehicles();
+    }
+  }, [id]);
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `https://apis.huswift.hutechweb.com/vehicles/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
+      );
+      if (!response.ok) throw new Error("Failed to fetch driver");
+      const data = await response.json();
+      console.log("Vehicle data:", data); // For debugging
+
+      // Transform API response to match form data structure
+      if (data.vehicles) {
+        const vehicle = data?.vehicles?.vehicle;
+        console.log("Vehicle:", vehicle);
+        setFormData({
+          assignedDriver: {
+            driverId: vehicle.assignedDriver?.driverId || "",
+            name: vehicle.assignedDriver?.name || "",
+          },
+          basicInfo: {
+            vehicleNumber: vehicle.basicInfo?.vehicleNumber || "",
+            type: vehicle.basicInfo?.type || "",
+            make: vehicle.basicInfo?.make || "",
+            model: vehicle.basicInfo?.model || "",
+            yearOfManufacturing: vehicle.basicInfo?.yearOfManufacturing || "",
+          },
+          capacity: {
+            maxLoad: vehicle.capacity?.maxLoad || "",
+            seatingCapacity: vehicle.capacity?.seatingCapacity || "",
+          },
+          documentUpload: {
+            rc: vehicle.documentUpload?.rc || "",
+            insurance: vehicle.documentUpload?.insurance || "",
+            permit: vehicle.documentUpload?.permit || "",
+            pollutionCertificate:
+              vehicle.documentUpload?.pollutionCertificate || "",
+          },
+          fuelDetails: {
+            fuelType: vehicle.fuelDetails?.fuelType || "",
+            mileage: vehicle.fuelDetails?.mileage || "",
+            tankCapacity: vehicle.fuelDetails?.tankCapacity || "",
+          },
+          gpsTracking: {
+            deviceId: vehicle.gpsTracking?.deviceId || "",
+            installed: vehicle.gpsTracking?.installed || "",
+          },
+          insuranceDetails: {
+            provider: vehicle.insuranceDetails?.provider || "",
+            policyNumber: vehicle.insuranceDetails?.policyNumber || "",
+            expiryDate: vehicle.insuranceDetails?.expiryDate || "",
+          },
+          maintenanceSchedule: {
+            lastServiceDate: vehicle.maintenanceSchedule?.lastServiceDate || "",
+            nextDueDate: vehicle.maintenanceSchedule?.nextDueDate || "",
+            serviceCenter: vehicle.maintenanceSchedule?.serviceCenter || "",
+          },
+          ownerShipType: {
+            ownerShipType: vehicle.ownerShipType?.ownerShipType || "",
+          },
+          permitDetails: {
+            permit: vehicle.permitDetails?.permit || "",
+            validity: vehicle.permitDetails?.validity || "",
+            routRestriction: vehicle.permitDetails?.routRestriction || "",
+          },
+          registrationDetails: {
+            rcNumber: vehicle.registrationDetails?.rcNumber || "",
+            state: vehicle.registrationDetails?.state || "",
+            expiryDate: vehicle.registrationDetails?.expiryDate || "",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching vehicle:", error);
+      setError("Failed to fetch vehicle details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const url = id
+        ? `https://apis.huswift.hutechweb.com/vehicles/${id}`
+        : "https://apis.huswift.hutechweb.com/vehicles/onboard";
+
+      const payload = {
+        assignedDriver: {
+          driverId: formData.assignedDriver.driverId,
+          name: formData.assignedDriver.name,
+        },
+        basicInfo: {
+          vehicleNumber: formData.basicInfo.vehicleNumber,
+          type: formData.basicInfo.type,
+          make: formData.basicInfo.make,
+          model: formData.basicInfo.model,
+          yearOfManufacturing: formData.basicInfo.yearOfManufacturing,
+        },
+        capacity: {
+          maxLoad: formData.capacity.maxLoad,
+          seatingCapacity: formData.capacity.seatingCapacity,
+        },
+        documentUpload: {
+          rc: formData.documentUpload.rc,
+          insurance: formData.documentUpload.insurance,
+          permit: formData.documentUpload.permit,
+          pollutionCertificate: formData.documentUpload.pollutionCertificate,
+        },
+        fuelDetails: {
+          fuelType: formData.fuelDetails.fuelType,
+          mileage: formData.fuelDetails.mileage,
+          tankCapacity: formData.fuelDetails.tankCapacity,
+        },
+        gpsTracking: {
+          deviceId: formData.gpsTracking.deviceId,
+          installed: formData.gpsTracking.installed,
+        },
+        insuranceDetails: {
+          provider: formData.insuranceDetails.provider,
+          policyNumber: formData.insuranceDetails.policyNumber,
+          expiryDate: formData.insuranceDetails.expiryDate,
+        },
+        maintenanceSchedule: {
+          lastServiceDate: formData.maintenanceSchedule.lastServiceDate,
+          nextDueDate: formData.maintenanceSchedule.nextDueDate,
+          serviceCenter: formData.maintenanceSchedule.serviceCenter,
+        },
+        ownerShipType: {
+          ownerShipType: formData.ownerShipType.ownerShipType,
+        },
+        permitDetails: {
+          permit: formData.permitDetails.permit,
+          validity: formData.permitDetails.validity,
+          routRestriction: formData.permitDetails.routRestriction,
+        },
+        registrationDetails: {
+          rcNumber: formData.registrationDetails.rcNumber,
+          state: formData.registrationDetails.state,
+          expiryDate: formData.registrationDetails.expiryDate,
+        },
+      };
+      const response = await fetch(url, {
+        method: id ? "PATCH" : "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        mode: "cors",
+        body: JSON.stringify(id ? payload : payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save vehicles");
+      }
+      const data = await response.json();
+      console.log("data:", data);
+      if (data?.data?.[0]?.code === "SUCCESS") {
+        navigate("/vehicles");
+      } else {
+        throw new Error(data.message || "Failed to save vehicles");
+      }
+    } catch (error) {
+      console.error("Error saving vehicle:", error);
+      setError(error.message || "Failed to save vehicle. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const updateFormData = (
+    section: keyof VehicleFormData,
+    field: string,
+    value: any,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* <div className="flex justify-between items-center">
+         <h1 className="text-2xl font-bold">Add New Vehicle</h1>
+         <Button variant="outline" onClick={() => navigate("/vehicles")}>
+          Cancel
+         </Button>
+       </div> */}
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -34,41 +362,100 @@ export default function VehicleForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Vehicle Number</Label>
-                <Input placeholder="Enter vehicle number" />
+                <Input
+                  placeholder="Enter vehicle number"
+                  value={formData.basicInfo?.vehicleNumber}
+                  onChange={(e) =>
+                    updateFormData("basicInfo", "vehicleNumber", e.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select>
+                <Select
+                  value={formData.basicInfo.type}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        type: value,
+                      },
+                    })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="truck">Truck</SelectItem>
                     <SelectItem value="van">Van</SelectItem>
-                    <SelectItem value="container">Container</SelectItem>
+                    <SelectItem value="container">Bike</SelectItem>
                     <SelectItem value="trailer">Trailer</SelectItem>
-                    <SelectItem value="refrigerated">
-                      Refrigerated Truck
-                    </SelectItem>
-                    <SelectItem value="two_wheeler">Two-Wheeler</SelectItem>
+                    <SelectItem value="two_wheeler">Car</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Make</Label>
-                <Input placeholder="Vehicle make" />
+                <Input
+                  placeholder="Vehicle make"
+                  value={formData.basicInfo.make}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        make: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Model</Label>
-                <Input placeholder="Vehicle model" />
+                <Input
+                  placeholder="Vehicle model"
+                  value={formData.basicInfo.model}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      basicInfo: {
+                        ...formData.basicInfo,
+                        model: e.target.value,
+                      },
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Year</Label>
-                <Input type="number" placeholder="Manufacturing year" />
+                <Input
+                  type="number"
+                  placeholder="Manufacturing year"
+                  value={formData.basicInfo.yearOfManufacturing}
+                  onChange={(e) =>
+                    updateFormData(
+                      "basicInfo",
+                      "yearofManufacturing",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Registration State</Label>
-                <Input placeholder="State of registration" />
+                <Input
+                  placeholder="State of registration"
+                  value={formData.registrationDetails?.state}
+                  onChange={(e) =>
+                    updateFormData(
+                      "registrationDetails",
+                      "state",
+                      e.target.value,
+                    )
+                  }
+                />
               </div>
             </div>
           </TabsContent>
@@ -216,11 +603,12 @@ export default function VehicleForm() {
       </Tabs>
 
       <div className="flex justify-end space-x-4">
-        <Button variant="outline" onClick={() => navigate("/vehicles")}>
-          Cancel
-        </Button>
-        <Button onClick={() => console.log("Save vehicle")}>
-          Save Vehicle
+        <Button
+          onClick={handleSubmit}
+          className="w-full mt-6"
+          disabled={loading}
+        >
+          {id ? "Update Vehicle" : "Add Vehicle"}
         </Button>
       </div>
     </div>
