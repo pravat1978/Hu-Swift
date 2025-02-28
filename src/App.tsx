@@ -30,6 +30,8 @@ import FleetYardForm from "@/components/locations/FleetYardForm";
 import OrderList from "@/components/load-management/OrderList";
 import OrderDetail from "@/components/load-management/OrderDetail";
 import LoadPlan from "@/components/load-management/LoadPlan";
+import TripList from "@/components/load-management/TripList";
+import DispatchDashboard from "@/components/load-management/DispatchDashboard";
 import routes from "tempo-routes";
 
 function App() {
@@ -146,6 +148,8 @@ function App() {
                   <Route path=":id" element={<OrderDetail />} />
                 </Route>
                 <Route path="load-plan" element={<LoadPlan />} />
+                <Route path="trips" element={<TripList />} />
+                <Route path="dispatch" element={<DispatchDashboard />} />
               </Route>
             </Route>
 

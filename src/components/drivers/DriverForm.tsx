@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import MultiSelect from "react-select";
 
 interface DriverFormData {
   personalDetails: {
@@ -117,6 +116,10 @@ interface Organization {
   name: string;
 }
 
+interface Vehicle {
+  id: string;
+  vehicleNumber: string;
+}
 export default function DriverForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -125,8 +128,8 @@ export default function DriverForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [page, setPage] = useState(1);
-  const [vehicles, setVehicles] = useState([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  // const [nameError, setNameError] = useState("");
   useEffect(() => {
     fetchOrganizations();
   }, []);
@@ -134,7 +137,7 @@ export default function DriverForm() {
   const fetchOrganizations = async () => {
     try {
       const response = await fetch(
-        "https://apis.huswift.hutechweb.com/organizations/all?page=1&size=100&sort=desc",
+        `https://apis.huswift.hutechweb.com/organizations/all?page=1&size=100&sort=desc`,
         {
           headers: {
             Accept: "application/json",
@@ -158,6 +161,36 @@ export default function DriverForm() {
     } catch (error) {
       console.error("Error fetching organizations:", error);
       setError("Failed to fetch organizations");
+    }
+  };
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+  const fetchVehicles = async () => {
+    try {
+      const response = await fetch(
+        `https://apis.huswift.hutechweb.com/vehicles/?page=10&size=5`,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
+      );
+      if (!response.ok) throw new Error("Failed to fetch vehicles");
+      const data = await response.json();
+      if (Array.isArray(data.data)) {
+        const transformedData = data.data.map((item) => ({
+          id: item.vehicles.id,
+          vehicleNumber: item.vehicles.basicInfo.vehicleNumber,
+        }));
+        setVehicles(transformedData);
+      }
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      setError("Failed to fetch vehicles");
     }
   };
 
@@ -360,30 +393,6 @@ export default function DriverForm() {
     );
   }
 
-  // Fetch vehicles from API
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      if (!formData.employmentDetails?.organizationId) return;
-      try {
-        const response = await fetch(
-          `https://apis.huswift.hutechweb.com/vehicles/?page=${page}&limit=6`,
-        );
-        const data = await response.json();
-        setVehicles(data?.vehicles || []);
-        console.log("Fetched Vehicles:", data.vehicles);
-      } catch (error) {
-        console.error("Error fetching vehicles:", error);
-      }
-    };
-
-    fetchVehicles();
-  }, [formData.employmentDetails?.organizationId, page]);
-
-  // Log after vehicles state updates
-  useEffect(() => {
-    console.log("Updated Vehicles:", vehicles);
-  }, [vehicles]);
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {error && (
@@ -404,28 +413,67 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Full Name</Label>
                 <Input
+                  type="text"
+                  placeholder="Enter your name"
+                  required
                   value={formData.personalDetails?.name}
-                  onChange={(e) =>
-                    updateFormData("personalDetails", "name", e.target.value)
-                  }
+                  onChange={(e) => {
+                    const regex = /^[A-Za-z\s]+$/; // Only allows alphabets and spaces
+                    if (e.target.value === "" || regex.test(e.target.value)) {
+                      updateFormData("personalDetails", "name", e.target.value);
+                    }
+                  }}
                 />
+                {(formData.personalDetails?.name === "" && (
+                  <p className="text-red-500 text-sm">Full Name is required</p>
+                )) ||
+                  (formData.personalDetails?.name !== "" &&
+                    !/^[A-Za-z\s]+$/.test(formData.personalDetails?.name) && (
+                      <p className="text-red-500 text-sm">
+                        Only alphabets are allowed
+                      </p>
+                    ))}
               </div>
+
               <div className="space-y-2">
                 <Label>Date of Birth</Label>
                 <Input
                   type="date"
-                  value={formData.personalDetails?.dateOfBirth}
-                  onChange={(e) =>
-                    updateFormData(
-                      "personalDetails",
-                      "dateOfBirth",
-                      e.target.value,
+                  required
+                  max={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 18),
                     )
-                  }
+                      .toISOString()
+                      .split("T")[0]
+                  } // Restricts DOB to at least 18 years old
+                  value={formData.personalDetails?.dateOfBirth}
+                  onChange={(e) => {
+                    const selectedDate = new Date(e.target.value);
+                    const today = new Date();
+                    const minAllowedDate = new Date(
+                      today.getFullYear() - 18,
+                      today.getMonth(),
+                      today.getDate(),
+                    ); // Ensures driver is at least 18 years old
+
+                    if (
+                      selectedDate <= today &&
+                      selectedDate <= minAllowedDate
+                    ) {
+                      updateFormData(
+                        "personalDetails",
+                        "dateOfBirth",
+                        e.target.value,
+                      );
+                    }
+                  }}
                 />
               </div>
+
               <div className="space-y-2">
                 <Label>Gender</Label>
+                required
                 <Select
                   value={formData.personalDetails?.gender}
                   onValueChange={(value) =>
@@ -445,23 +493,39 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input
+                  type="text"
+                  placeholder="Enter your phone number"
+                  required
+                  maxLength={10} // Ensures only 10 characters can be entered
                   value={formData.contactDetails?.mobileNumber}
-                  onChange={(e) =>
-                    updateFormData(
-                      "contactDetails",
-                      "mobileNumber",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => {
+                    const regex = /^[0-9\b]+$/; // Only allows numbers
+                    if (
+                      e.target.value === "" ||
+                      (regex.test(e.target.value) &&
+                        e.target.value.length <= 10)
+                    ) {
+                      updateFormData(
+                        "contactDetails",
+                        "mobileNumber",
+                        e.target.value,
+                      );
+                    }
+                  }}
+                  errorMessage="Enter a valid 10-digit phone number"
                 />
               </div>
+
               <div className="space-y-2">
                 <Label>Email</Label>
                 <Input
                   type="email"
+                  placeholder="Enter your email"
+                  required
+                  errorMessage="Please enter a valid email"
                   value={formData.contactDetails?.email}
                   onChange={(e) =>
-                    updateFormData("contactDetails", "email", e.target.value)
+                    updateFormData("personalDetails", "email", e.target.value)
                   }
                 />
               </div>
@@ -473,47 +537,131 @@ export default function DriverForm() {
                 <div className="space-y-2">
                   <Label>Address Line 1</Label>
                   <Input
+                    required
+                    maxLength={100}
                     value={formData.address?.addressLine1}
-                    onChange={(e) =>
-                      updateFormData("address", "addressLine1", e.target.value)
-                    }
+                    onChange={(e) => {
+                      if (e.target.value.length <= 100) {
+                        updateFormData(
+                          "address",
+                          "addressLine1",
+                          e.target.value,
+                        );
+                      }
+                    }}
+                    placeholder="Enter address line 2"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Address Line 2</Label>
                   <Input
+                    maxLength={100}
                     value={formData.address?.addressLine2}
-                    onChange={(e) =>
-                      updateFormData("address", "addressLine2", e.target.value)
-                    }
+                    onChange={(e) => {
+                      if (e.target.value.length <= 100) {
+                        updateFormData(
+                          "address",
+                          "addressLine2",
+                          e.target.value,
+                        );
+                      }
+                    }}
+                    placeholder="Enter address line 2"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label>City</Label>
                   <Input
+                    required
+                    maxLength={50} // Restricts input length to 50 characters
                     value={formData.address?.city}
-                    onChange={(e) =>
-                      updateFormData("address", "city", e.target.value)
-                    }
+                    onChange={(e) => {
+                      if (e.target.value.length <= 50) {
+                        updateFormData("address", "city", e.target.value);
+                      }
+                    }}
+                    placeholder="Enter city"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label>State</Label>
-                  <Input
+                  <Select
                     value={formData.address?.state}
-                    onChange={(e) =>
-                      updateFormData("address", "state", e.target.value)
+                    onValueChange={(value) =>
+                      updateFormData("address", "state", value)
                     }
-                  />
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Andhra Pradesh">
+                        Andhra Pradesh
+                      </SelectItem>
+                      <SelectItem value="Arunachal Pradesh">
+                        Arunachal Pradesh
+                      </SelectItem>
+                      <SelectItem value="Assam">Assam</SelectItem>
+                      <SelectItem value="Bihar">Bihar</SelectItem>
+                      <SelectItem value="Chhattisgarh">Chhattisgarh</SelectItem>
+                      <SelectItem value="Goa">Goa</SelectItem>
+                      <SelectItem value="Gujarat">Gujarat</SelectItem>
+                      <SelectItem value="Haryana">Haryana</SelectItem>
+                      <SelectItem value="Himachal Pradesh">
+                        Himachal Pradesh
+                      </SelectItem>
+                      <SelectItem value="Jharkhand">Jharkhand</SelectItem>
+                      <SelectItem value="Karnataka">Karnataka</SelectItem>
+                      <SelectItem value="Kerala">Kerala</SelectItem>
+                      <SelectItem value="Madhya Pradesh">
+                        Madhya Pradesh
+                      </SelectItem>
+                      <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                      <SelectItem value="Manipur">Manipur</SelectItem>
+                      <SelectItem value="Meghalaya">Meghalaya</SelectItem>
+                      <SelectItem value="Mizoram">Mizoram</SelectItem>
+                      <SelectItem value="Nagaland">Nagaland</SelectItem>
+                      <SelectItem value="Odisha">Odisha</SelectItem>
+                      <SelectItem value="Punjab">Punjab</SelectItem>
+                      <SelectItem value="Rajasthan">Rajasthan</SelectItem>
+                      <SelectItem value="Sikkim">Sikkim</SelectItem>
+                      <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
+                      <SelectItem value="Telangana">Telangana</SelectItem>
+                      <SelectItem value="Tripura">Tripura</SelectItem>
+                      <SelectItem value="Uttar Pradesh">
+                        Uttar Pradesh
+                      </SelectItem>
+                      <SelectItem value="Uttarakhand">Uttarakhand</SelectItem>
+                      <SelectItem value="West Bengal">West Bengal</SelectItem>
+                      <SelectItem value="Jammu and Kashmir">
+                        Jammu and Kashmir
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Pincode</Label>
                   <Input
+                    required
                     value={formData.address?.pincode}
-                    onChange={(e) =>
-                      updateFormData("address", "pincode", e.target.value)
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const regex = /^[0-9]{5,10}$/;
+                      if (regex.test(value) || value === "") {
+                        updateFormData("address", "pincode", value);
+                      }
+                    }}
+                    placeholder="Enter pincode"
                   />
+                  {formData.address?.pincode &&
+                    !/^[0-9]{5,10}$/.test(formData.address?.pincode) && (
+                      <p className="text-red-500 text-sm">
+                        Pincode must be between 5 to 10 digits
+                      </p>
+                    )}
                 </div>
               </div>
             </div>
@@ -524,30 +672,55 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>License Number</Label>
                 <Input
+                  required
                   value={formData.licenseDetails?.licenseNumber}
-                  onChange={(e) =>
-                    updateFormData(
-                      "licenseDetails",
-                      "licenseNumber",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const regex = /^[A-Z0-9]{8,20}$/;
+                    if (regex.test(value) || value === "") {
+                      updateFormData("licenseDetails", "licenseNumber", value);
+                    }
+                  }}
+                  placeholder="Enter license number"
                 />
+                {formData.licenseDetails?.licenseNumber &&
+                  !/^[A-Z0-9]{8,20}$/.test(
+                    formData.licenseDetails?.licenseNumber,
+                  ) && (
+                    <p className="text-red-500 text-sm">
+                      License number must be alphanumeric and between 8 to 20
+                      characters
+                    </p>
+                  )}
               </div>
+
               <div className="space-y-2">
                 <Label>License Expiry Date</Label>
                 <Input
                   type="date"
+                  required
                   value={formData.licenseDetails?.licenseExpiryDate}
-                  onChange={(e) =>
-                    updateFormData(
-                      "licenseDetails",
-                      "licenseExpiryDate",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const currentDate = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+                    if (value > currentDate || value === "") {
+                      updateFormData(
+                        "licenseDetails",
+                        "licenseExpiryDate",
+                        value,
+                      );
+                    }
+                  }}
                 />
+                {formData.licenseDetails?.licenseExpiryDate &&
+                  formData.licenseDetails?.licenseExpiryDate <=
+                    new Date().toISOString().split("T")[0] && (
+                    <p className="text-red-500 text-sm">
+                      License expiry date must be in the future
+                    </p>
+                  )}
               </div>
+
               <div className="space-y-2">
                 <Label>License Type</Label>
                 <Select
@@ -555,15 +728,18 @@ export default function DriverForm() {
                   onValueChange={(value) =>
                     updateFormData("licenseDetails", "type", value)
                   }
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select license type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Commercial">Commercial</SelectItem>
-                    <SelectItem value="Non-Commercial">
-                      Non-Commercial
+                    <SelectItem value="Motorcycle without Gear">
+                      MCWOG
                     </SelectItem>
+                    <SelectItem value="Motorcycle with Gear">MCWG</SelectItem>
+                    <SelectItem value="Heavy Motor Vehicle">HMV</SelectItem>
+                    <SelectItem value="Light Motor Vehicle">LMV</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -578,6 +754,7 @@ export default function DriverForm() {
                       e.target.value,
                     )
                   }
+                  required
                 />
               </div>
             </div>
@@ -596,6 +773,7 @@ export default function DriverForm() {
                       e.target.value,
                     )
                   }
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -605,6 +783,7 @@ export default function DriverForm() {
                   onValueChange={(value) =>
                     updateFormData("employmentDetails", "organizationId", value)
                   }
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select organization" />
@@ -621,6 +800,7 @@ export default function DriverForm() {
               <div className="space-y-2">
                 <Label>Joining Date</Label>
                 <Input
+                  required
                   type="date"
                   value={formData.employmentDetails?.joiningDate}
                   onChange={(e) =>
@@ -658,6 +838,7 @@ export default function DriverForm() {
                       e.target.value,
                     )
                   }
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -672,39 +853,29 @@ export default function DriverForm() {
                       e.target.value,
                     )
                   }
+                  required
                 />
               </div>
-              <div className="space-y-2 col-span-2">
-                <Label>Vehicles</Label>
-                <MultiSelect
-                  options={vehicles.map((vehicle) => ({
-                    value: vehicle.basicInfo.vehicleNumber, // Ensure this is unique
-                    label: vehicle.basicInfo.vehicleNumber,
-                  }))}
-                  value={(formData.employmentDetails?.vehicles || []).map(
-                    (vehicleNumber: string) => {
-                      const matchedVehicle = vehicles.find(
-                        (v) => v.basicInfo.vehicleNumber === vehicleNumber,
-                      );
-                      return {
-                        value: vehicleNumber,
-                        label: matchedVehicle
-                          ? matchedVehicle.basicInfo.vehicleNumber
-                          : "Unknown",
-                      };
-                    },
-                  )}
-                  onChange={(selected) =>
-                    updateFormData(
-                      "employmentDetails",
-                      "vehicles",
-                      selected.map((option: any) => option.value),
-                    )
+              <div className="space-y-2">
+                <Label>Vehicle</Label>
+                <Select
+                  value={formData.vehicleAssigned?.vehicleId}
+                  onValueChange={(value) =>
+                    updateFormData("vehicleAssigned", "vehicleId", value)
                   }
-                  isLoading={loading}
-                  placeholder="Select vehicles"
-                  isMulti
-                />{" "}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select vehicleAssigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.vehicleNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </TabsContent>
@@ -717,11 +888,27 @@ export default function DriverForm() {
                   <Label>Contact Name</Label>
                   <Input
                     value={formData.emergencyContact?.name}
-                    onChange={(e) =>
-                      updateFormData("emergencyContact", "name", e.target.value)
-                    }
+                    onChange={(e) => {
+                      const regex = /^[a-zA-Z\s]+$/; // Only allows letters and spaces
+                      if (e.target.value === "" || regex.test(e.target.value)) {
+                        updateFormData(
+                          "emergencyContact",
+                          "name",
+                          e.target.value,
+                        );
+                      }
+                    }}
+                    required
+                    placeholder="Enter contact name"
                   />
+                  {formData.emergencyContact?.name &&
+                    !/^[a-zA-Z\s]+$/.test(formData.emergencyContact?.name) && (
+                      <p className="text-red-500 text-sm">
+                        Name should contain only letters and spaces
+                      </p>
+                    )}
                 </div>
+
                 <div className="space-y-2">
                   <Label>Relationship</Label>
                   <Input
@@ -746,7 +933,17 @@ export default function DriverForm() {
                         e.target.value,
                       )
                     }
+                    required
+                    placeholder="Enter 10-digit phone number"
+                    type="tel"
+                    pattern="^[0-9]{10}$"
                   />
+                  {formData.emergencyContact?.phoneNumber &&
+                    formData.emergencyContact?.phoneNumber.length !== 10 && (
+                      <p className="text-red-500 text-sm">
+                        Phone number must be 10 digits long.
+                      </p>
+                    )}
                 </div>
               </div>
 
@@ -763,7 +960,19 @@ export default function DriverForm() {
                         e.target.value,
                       )
                     }
+                    required
+                    pattern="^[A-Z0-9]{8,20}$"
+                    placeholder="Enter License Number"
                   />
+                  {formData.documentsUpload?.license &&
+                    !/^[A-Z0-9]{8,20}$/.test(
+                      formData.documentsUpload?.license,
+                    ) && (
+                      <p className="text-red-500 text-sm">
+                        License number must be alphanumeric and between 8 to 20
+                        characters
+                      </p>
+                    )}
                 </div>
                 <div className="space-y-2">
                   <Label>Aadhar Card</Label>
@@ -776,8 +985,20 @@ export default function DriverForm() {
                         e.target.value,
                       )
                     }
+                    required
+                    pattern="^[2-9]{1}[0-9]{11}$"
+                    placeholder="Enter Aadhar number"
                   />
+                  {formData.documentsUpload?.aadhar &&
+                    !/^[2-9]{1}[0-9]{11}$/.test(
+                      formData.documentsUpload?.aadhar,
+                    ) && (
+                      <p className="text-red-500 text-sm">
+                        Aadhar number must be a valid 12-digit number.
+                      </p>
+                    )}
                 </div>
+
                 <div className="space-y-2">
                   <Label>PAN Card</Label>
                   <Input
@@ -785,32 +1006,61 @@ export default function DriverForm() {
                     onChange={(e) =>
                       updateFormData("documentsUpload", "pan", e.target.value)
                     }
+                    required
+                    pattern="^[A-Z]{5}[0-9]{4}[A-Z]{1}$"
+                    placeholder="Enter PAN number"
                   />
+                  {formData.documentsUpload?.pan &&
+                    !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(
+                      formData.documentsUpload?.pan,
+                    ) && (
+                      <p className="text-red-500 text-sm">
+                        PAN number must be in format ABCDE1234F
+                      </p>
+                    )}
                 </div>
+
                 <div className="space-y-2">
                   <Label>Police Verification</Label>
-                  <Input
+                  <Select
                     value={formData.documentsUpload?.policeVerification}
-                    onChange={(e) =>
+                    onValueChange={(value) =>
                       updateFormData(
                         "documentsUpload",
                         "policeVerification",
-                        e.target.value,
+                        value,
                       )
                     }
-                  />
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Yes">Yes</SelectItem>
+                      <SelectItem value="No">No</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
           </TabsContent>
-
-          <Button
-            onClick={handleSubmit}
-            className="w-full mt-6"
-            disabled={loading}
-          >
-            {id ? "Update Driver" : "Add Driver"}
-          </Button>
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/drivers")}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              // className="w-full mt-6"
+              disabled={loading}
+            >
+              {id ? "Update Driver" : "Add Driver"}
+            </Button>
+          </div>
         </Card>
       </Tabs>
     </div>

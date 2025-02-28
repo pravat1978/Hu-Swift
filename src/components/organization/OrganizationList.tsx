@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
+import axios from "axios";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 interface Organization {
   id: string;
   organizationName: string | null;
@@ -31,6 +32,7 @@ export default function OrganizationList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function OrganizationList() {
         setTotalPages(data.totalPages || 1); // Use the correct field for totalPages
         setTotalRecords(data.totalRecords || 0); // Use the correct field for totalRecords
       } else {
-        throw new Error("Unexpected response structure");
+        throw new Error("Failed to fetch organizations");
       }
 
       setError(null);
@@ -95,7 +97,21 @@ export default function OrganizationList() {
       setLoading(false);
     }
   };
+  const handleToggleStatus = async (orgId: string) => {
+    try {
+      console.log("Toggling status for organization:", orgId); // Debugging
 
+      const response = await axios.delete(`${BASE_URL}/organizations/${orgId}`);
+
+      console.log("organization Deactivated:", response?.data);
+
+      if (response?.data?.code === "200") {
+        fetchOrganizations(currentPage); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error deactivating organization:", error);
+    }
+  };
   const filteredOrganizations = organizations.filter((org) =>
     Object.values(org).some((value) =>
       value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
@@ -176,7 +192,7 @@ export default function OrganizationList() {
                           : "bg-red-500 hover:bg-red-600 text-white",
                       )}
                     >
-                      {org.status?.toUpperCase() || "INACTIVE"}
+                      {org.status || "INACTIVE"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -184,53 +200,24 @@ export default function OrganizationList() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch(
-                              `https://apis.huswift.hutechweb.com/organizations/${org.id}`,
-                              {
-                                headers: {
-                                  Accept: "application/json",
-                                  "Content-Type": "application/json",
-                                  "Access-Control-Allow-Origin": "*",
-                                },
-                                mode: "cors",
-                              },
-                            );
-
-                            if (!response.ok)
-                              throw new Error("Failed to fetch organization");
-
-                            const data = await response.json();
-
-                            // Navigate to edit page with the organization data
-                            navigate(`/organization/${org.id}/edit`, {
-                              state: {
-                                organizationData: data,
-                              },
-                            });
-                          } catch (error) {
-                            console.error(
-                              "Error fetching organization:",
-                              error,
-                            );
-                            setError("Failed to fetch organization details");
-                          }
-                        }}
+                        onClick={() => navigate(`/organization/${org.id}/edit`)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => console.log("Toggle status")}
-                        className={cn(
-                          org.status === "active"
-                            ? "bg-green-500 hover:bg-green-600 text-white"
-                            : "bg-red-500 hover:bg-red-600 text-white",
-                        )}
+                        onClick={() => {
+                          console.log("Button clicked for driver:", org.id); // Debugging
+                          handleToggleStatus(org.id);
+                        }}
                       >
-                        <Power className="h-4 w-4" />
+                        <Power
+                          className={cn(
+                            "h-4 w-4",
+                            updatingId === org.id && "animate-spin",
+                          )}
+                        />
                       </Button>
                     </div>
                   </TableCell>

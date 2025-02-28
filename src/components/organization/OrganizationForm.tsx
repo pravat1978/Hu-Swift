@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +15,13 @@ import {
 
 export default function OrganizationForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState("basic");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    regNumber: "",
+    organizationName: "",
+    companyRegistrationNumber: "",
     type: "",
     industry: "",
     phone: "",
@@ -39,7 +40,43 @@ export default function OrganizationForm() {
     incorporationDate: "",
     cin: "",
   });
-
+  useEffect(() => {
+    if (id) {
+      fetchOrganization();
+    }
+  }, [id]);
+  const fetchOrganization = async () => {
+    try {
+      const response = await fetch(
+        `https://apis.huswift.hutechweb.com/organizations/search?id=${id}`,
+        // `https://apis.huswift.hutechweb.com/organizations/search?${id}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch organization");
+      }
+      const data = await response.json();
+      console.log(
+        data.data?.[0]?.organizationDetails,
+        "+++++++++++++++++++++++++++++",
+      );
+      setFormData(data.data?.[0]?.organizationDetails);
+    } catch (error) {
+      console.error("Error fetching organization:", error);
+      setError("Failed to fetch driver details");
+    } finally {
+      setLoading(false);
+    }
+  };
+  console.log(formData, "formData");
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -50,7 +87,7 @@ export default function OrganizationForm() {
         : "https://apis.huswift.hutechweb.com/organizations/create";
 
       const response = await fetch(url, {
-        method: id ? "PUT" : "POST",
+        method: id ? "PATCH" : "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -59,8 +96,8 @@ export default function OrganizationForm() {
         mode: "cors",
         body: JSON.stringify({
           basicInfo: {
-            organizationName: formData.name,
-            companyRegistrationNumber: formData.regNumber,
+            organizationName: formData.organizationName,
+            companyRegistrationNumber: formData.companyRegistrationNumber,
             type: formData.type,
             industry: formData.industry,
             phone: formData.phone,
@@ -106,8 +143,8 @@ export default function OrganizationForm() {
 
       const payload = {
         basicInfo: {
-          organizationName: formData.name,
-          companyRegistrationNumber: formData.regNumber,
+          organizationName: formData.organizationName,
+          companyRegistrationNumber: formData.companyRegistrationNumber,
           type: formData.type,
           industry: formData.industry,
           phone: formData.phone,
@@ -155,9 +192,31 @@ export default function OrganizationForm() {
       setLoading(false);
     }
   };
+  const updateFormData = (
+    section: keyof FormData,
+    field: string,
+    value: any,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
+      )}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -171,9 +230,12 @@ export default function OrganizationForm() {
                 <Label>Organization Name</Label>
                 <Input
                   placeholder="Enter organization name"
-                  value={formData.name}
+                  value={formData.organizationName}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({
+                      ...formData,
+                      organizationName: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -181,9 +243,12 @@ export default function OrganizationForm() {
                 <Label>Company Registration Number</Label>
                 <Input
                   placeholder="Enter company registration number"
-                  value={formData.regNumber}
+                  value={formData.companyRegistrationNumber}
                   onChange={(e) =>
-                    setFormData({ ...formData, regNumber: e.target.value })
+                    setFormData({
+                      ...formData,
+                      companyRegistrationNumber: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -388,16 +453,28 @@ export default function OrganizationForm() {
         </Card>
       </Tabs>
 
-      {error && (
+      {/* {error && (
         <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
-      )}
+      )} */}
 
-      <div className="flex justify-end space-x-4">
+      {/* <div className="flex justify-end space-x-4">
         <Button variant="outline" onClick={() => navigate("/organization")}>
           Cancel
         </Button>
         <Button onClick={handleSubmit} disabled={loading}>
           {loading ? "Saving..." : "Save Organization"}
+        </Button>
+      </div> */}
+      <div className="flex justify-end space-x-4">
+        <Button variant="outline" onClick={() => navigate("/organization")}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          // className="w-full mt-6"
+          disabled={loading}
+        >
+          {id ? "Update Organization" : "Add Organization"}
         </Button>
       </div>
     </div>

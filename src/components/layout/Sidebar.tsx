@@ -90,6 +90,16 @@ const loadManagementItems: NavItem[] = [
     label: "Load Plan",
     href: "/load-management/load-plan",
   },
+  {
+    icon: <Truck className="w-5 h-5" />,
+    label: "Trips",
+    href: "/load-management/trips",
+  },
+  {
+    icon: <Truck className="w-5 h-5" />,
+    label: "Dispatch",
+    href: "/load-management/dispatch",
+  },
 ];
 
 const onboardingItems: NavItem[] = [

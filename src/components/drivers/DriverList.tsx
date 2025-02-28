@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import axios from "axios";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 interface Driver {
   id: string;
@@ -32,7 +34,7 @@ interface Driver {
     issuingAuthority: string;
   };
   vehicleAssigned: {
-    vehicleId: string;
+    vehicle: string;
     vehicleType: string;
   };
   status: string | null;
@@ -58,6 +60,14 @@ export default function DriverList() {
       setLoading(true);
       const response = await fetch(
         `https://apis.huswift.hutechweb.com/drivers/?page=${page}&size=5`,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          mode: "cors",
+        },
       );
 
       if (response.status === 404) {
@@ -76,38 +86,9 @@ export default function DriverList() {
       const data = await response.json();
 
       // Handle empty data gracefully
-      if (Array.isArray(data.drivers)) {
-        // Transform the data to match the interface
-        const transformedData = data.drivers.map((driver) => ({
-          id: driver.id,
-          personalDetails: {
-            name: driver.personalDetails?.name || "N/A",
-            dateOfBirth: driver.personalDetails?.dateOfBirth || null,
-            gender: driver.personalDetails?.gender || "N/A",
-          },
-          contactDetails: {
-            mobileNumber: driver.contactDetails?.mobileNumber || "N/A",
-            email: driver.contactDetails?.email || "N/A",
-          },
-          licenseDetails: {
-            licenseNumber: driver.licenseDetails?.licenseNumber || "N/A",
-            licenseExpiryDate: driver.licenseDetails?.licenseExpiryDate || null,
-            type: driver.licenseDetails?.type || "N/A",
-            issuingAuthority: driver.licenseDetails?.issuingAuthority || "N/A",
-          },
-          vehicleAssigned: {
-            vehicleId: driver.vehicleAssigned?.vehicleId || "",
-            vehicleType: driver.vehicleAssigned?.vehicleType || "",
-          },
-          status: driver.status || null,
-        }));
-
-        setDrivers(transformedData);
-        setTotalPages(data.pagination?.["total-Pages"] || 1);
-        setTotalRecords(data.pagination?.["total-Records"] || 0);
-      } else {
-        throw new Error("Unexpected response structure");
-      }
+      setDrivers(data.drivers || []);
+      setTotalPages(data.pagination?.["total-Pages"] || 1);
+      setTotalRecords(data.pagination?.["total-Records"] || 0);
       setError(null);
     } catch (err) {
       console.error("Error fetching drivers:", err);
@@ -119,32 +100,17 @@ export default function DriverList() {
 
   const handleToggleStatus = async (driverId: string) => {
     try {
-      setUpdatingId(driverId);
-      const response = await fetch(
-        `https://apis.huswift.hutechweb.com/drivers/${driverId}/toggle-status`,
-        {
-          method: "PATCH",
-        },
-      );
+      console.log("Toggling status for driver:", driverId); // Debugging
 
-      if (!response.ok) throw new Error("Failed to toggle status");
+      const response = await axios.delete(`${BASE_URL}/drivers/${driverId}`);
 
-      // Update the driver status locally
-      setDrivers((prevDrivers) =>
-        prevDrivers.map((driver) =>
-          driver.id === driverId
-            ? {
-                ...driver,
-                status: driver.status === "active" ? "inactive" : "active",
-              }
-            : driver,
-        ),
-      );
-    } catch (err) {
-      console.error("Error toggling driver status:", err);
-      setError("Failed to toggle driver status");
-    } finally {
-      setUpdatingId(null);
+      console.log("Driver Deactivated:", response?.data);
+
+      if (response?.data?.code === "SUCCESS") {
+        fetchDrivers(currentPage); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error deactivating driver:", error);
     }
   };
 
@@ -188,7 +154,6 @@ export default function DriverList() {
               <TableHead>License Number</TableHead>
               <TableHead>License Expiry</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Assigned Vehicles</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -228,18 +193,13 @@ export default function DriverList() {
                   <TableCell>
                     <Badge
                       className={cn(
-                        driver.status?.toLowerCase() === "active"
+                        driver.status === "Active"
                           ? "bg-green-500 hover:bg-green-600 text-white"
                           : "bg-red-500 hover:bg-red-600 text-white",
                       )}
                     >
-                      {driver.status?.toUpperCase() || "INACTIVE"}
+                      {driver.status || "InActive"}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {driver.vehicleAssigned.vehicleId
-                      ? `${driver.vehicleAssigned.vehicleId} (${driver.vehicleAssigned.vehicleType})`
-                      : "None"}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -253,13 +213,10 @@ export default function DriverList() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleToggleStatus(driver.id)}
-                        disabled={updatingId === driver.id}
-                        className={cn(
-                          driver.status === "ACTIVE"
-                            ? "bg-green-500 hover:bg-green-600 text-white"
-                            : "bg-red-500 hover:bg-red-600 text-white",
-                        )}
+                        onClick={() => {
+                          console.log("Button clicked for driver:", driver.id); // Debugging
+                          handleToggleStatus(driver.id);
+                        }}
                       >
                         <Power
                           className={cn(
