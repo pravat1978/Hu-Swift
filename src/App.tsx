@@ -27,6 +27,9 @@ import InventoryForm from "@/components/inventory/InventoryForm";
 import WarehouseForm from "@/components/locations/WarehouseForm";
 import FleetYardList from "@/components/locations/FleetYardList";
 import FleetYardForm from "@/components/locations/FleetYardForm";
+import OrderList from "@/components/load-management/OrderList";
+import OrderDetail from "@/components/load-management/OrderDetail";
+import LoadPlan from "@/components/load-management/LoadPlan";
 import routes from "tempo-routes";
 
 function App() {
@@ -134,6 +137,15 @@ function App() {
                   <Route path="new" element={<RoleForm />} />
                   <Route path=":id/edit" element={<RoleForm />} />
                 </Route>
+              </Route>
+
+              {/* Load Management Routes */}
+              <Route path="load-management">
+                <Route path="orders">
+                  <Route index element={<OrderList />} />
+                  <Route path=":id" element={<OrderDetail />} />
+                </Route>
+                <Route path="load-plan" element={<LoadPlan />} />
               </Route>
             </Route>
 
